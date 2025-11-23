@@ -1,0 +1,37 @@
+package com.weighlanka.backend.controller;
+
+import com.weighlanka.backend.model.Machine;
+import com.weighlanka.backend.service.MachineService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/machines")
+@CrossOrigin
+public class MachineController {
+
+    @Autowired
+    private MachineService machineService;
+
+    @PostMapping
+    public Machine createMachine(@RequestBody Machine machine) {
+        return machineService.createMachine(machine);
+    }
+
+    @GetMapping
+    public List<Machine> getAllMachines() {
+        return machineService.getAllMachines();
+    }
+
+    @GetMapping("/{id}")
+    public Machine getMachineById(@PathVariable String id) {
+        return machineService.getMachineById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteMachine(@PathVariable String id) {
+        machineService.deleteMachine(id);
+    }
+}
