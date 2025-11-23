@@ -12,5 +12,5 @@ public interface ServiceRecordRepository extends MongoRepository<ServiceRecord, 
 
     List<ServiceRecord> findByMachineId(String machineId);
 
-    List<ServiceRecord> findByNextServiceDate(LocalDate nextServiceDate);
+    List<ServiceRecord> findByNextServiceDate(LocalDate nextServiceDate); // Required
 }

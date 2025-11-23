@@ -23,10 +23,15 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
-    // GET BY ID
+    // GET BY ID (full version)
     public Customer getCustomerById(String id) {
         return customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
+    }
+
+    // SHORT VERSION used by scheduler
+    public Customer getCustomer(String id) {
+        return customerRepository.findById(id).orElse(null);
     }
 
     // UPDATE

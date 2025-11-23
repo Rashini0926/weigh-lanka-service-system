@@ -2,6 +2,7 @@ package com.weighlanka.backend.service;
 
 import com.weighlanka.backend.model.Machine;
 import com.weighlanka.backend.repository.MachineRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,11 +10,8 @@ import java.util.List;
 @Service
 public class MachineServiceImpl implements MachineService {
 
-    private final MachineRepository machineRepository;
-
-    public MachineServiceImpl(MachineRepository machineRepository) {
-        this.machineRepository = machineRepository;
-    }
+    @Autowired
+    private MachineRepository machineRepository;
 
     @Override
     public Machine createMachine(Machine machine) {
@@ -46,6 +44,9 @@ public class MachineServiceImpl implements MachineService {
 
     @Override
     public void deleteMachine(String id) {
+        if (!machineRepository.existsById(id)) {
+            throw new RuntimeException("Machine not found");
+        }
         machineRepository.deleteById(id);
     }
 }

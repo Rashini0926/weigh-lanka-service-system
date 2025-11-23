@@ -1,7 +1,6 @@
 package com.weighlanka.backend.service;
 
 import com.weighlanka.backend.model.Machine;
-
 import java.util.List;
 
 public interface MachineService {
@@ -10,7 +9,7 @@ public interface MachineService {
 
     Machine updateMachine(String id, Machine machine);
 
-    Machine getMachineById(String id);
+    Machine getMachineById(String id);  // Scheduler uses this
 
     List<Machine> getAllMachines();
 
