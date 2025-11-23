@@ -1,31 +1,22 @@
 package com.weighlanka.backend.service;
 
 import com.weighlanka.backend.model.ServiceRecord;
-import com.weighlanka.backend.repository.ServiceRecordRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class ServiceRecordService {
+public interface ServiceRecordService {
 
-    @Autowired
-    private ServiceRecordRepository serviceRecordRepository;
+    ServiceRecord createRecord(ServiceRecord record);
 
-    public ServiceRecord createRecord(ServiceRecord record) {
-        return serviceRecordRepository.save(record);
-    }
+    ServiceRecord updateRecord(String id, ServiceRecord record);
 
-    public List<ServiceRecord> getAllRecords() {
-        return serviceRecordRepository.findAll();
-    }
+    ServiceRecord getRecordById(String id);
 
-    public ServiceRecord getRecordById(String id) {
-        return serviceRecordRepository.findById(id).orElse(null);
-    }
+    List<ServiceRecord> getAllRecords();
 
-    public void deleteRecord(String id) {
-        serviceRecordRepository.deleteById(id);
-    }
+    List<ServiceRecord> getRecordsByCustomer(String customerId);
+
+    List<ServiceRecord> getRecordsByMachine(String machineId);
+
+    void deleteRecord(String id);
 }

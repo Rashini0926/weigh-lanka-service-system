@@ -1,31 +1,18 @@
 package com.weighlanka.backend.service;
 
 import com.weighlanka.backend.model.Machine;
-import com.weighlanka.backend.repository.MachineRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class MachineService {
+public interface MachineService {
 
-    @Autowired
-    private MachineRepository machineRepository;
+    Machine createMachine(Machine machine);
 
-    public Machine createMachine(Machine machine) {
-        return machineRepository.save(machine);
-    }
+    Machine updateMachine(String id, Machine machine);
 
-    public List<Machine> getAllMachines() {
-        return machineRepository.findAll();
-    }
+    Machine getMachineById(String id);
 
-    public Machine getMachineById(String id) {
-        return machineRepository.findById(id).orElse(null);
-    }
+    List<Machine> getAllMachines();
 
-    public void deleteMachine(String id) {
-        machineRepository.deleteById(id);
-    }
+    void deleteMachine(String id);
 }
