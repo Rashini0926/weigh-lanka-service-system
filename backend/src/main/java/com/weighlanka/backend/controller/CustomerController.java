@@ -9,29 +9,39 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
-@CrossOrigin
+@CrossOrigin(origins = "*")  // Allow frontend access
 public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
 
+    // CREATE
     @PostMapping
-    public Customer createCustomer(@RequestBody Customer customer) {
-        return customerService.createCustomer(customer);
+    public Customer addCustomer(@RequestBody Customer customer) {
+        return customerService.addCustomer(customer);
     }
 
+    // GET ALL
     @GetMapping
     public List<Customer> getAllCustomers() {
         return customerService.getAllCustomers();
     }
 
+    // GET ONE
     @GetMapping("/{id}")
     public Customer getCustomerById(@PathVariable String id) {
         return customerService.getCustomerById(id);
     }
 
+    // UPDATE
+    @PutMapping("/{id}")
+    public Customer updateCustomer(@PathVariable String id, @RequestBody Customer customer) {
+        return customerService.updateCustomer(id, customer);
+    }
+
+    // DELETE
     @DeleteMapping("/{id}")
-    public void deleteCustomer(@PathVariable String id) {
-        customerService.deleteCustomer(id);
+    public String deleteCustomer(@PathVariable String id) {
+        return customerService.deleteCustomer(id);
     }
 }

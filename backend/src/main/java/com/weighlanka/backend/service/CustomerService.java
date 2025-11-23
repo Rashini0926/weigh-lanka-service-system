@@ -13,19 +13,41 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public Customer createCustomer(Customer customer) {
+    // CREATE
+    public Customer addCustomer(Customer customer) {
         return customerRepository.save(customer);
     }
 
+    // GET ALL
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
     }
 
+    // GET BY ID
     public Customer getCustomerById(String id) {
-        return customerRepository.findById(id).orElse(null);
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
     }
 
-    public void deleteCustomer(String id) {
+    // UPDATE
+    public Customer updateCustomer(String id, Customer updatedCustomer) {
+        Customer existing = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        existing.setCustomerName(updatedCustomer.getCustomerName());
+        existing.setAddress(updatedCustomer.getAddress());
+        existing.setPhone(updatedCustomer.getPhone());
+        existing.setEmail(updatedCustomer.getEmail());
+
+        return customerRepository.save(existing);
+    }
+
+    // DELETE
+    public String deleteCustomer(String id) {
+        if (!customerRepository.existsById(id)) {
+            throw new RuntimeException("Customer not found");
+        }
         customerRepository.deleteById(id);
+        return "Customer deleted successfully!";
     }
 }
