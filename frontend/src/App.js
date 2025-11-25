@@ -1,62 +1,65 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// CUSTOMER PAGES
+import MainLayout from "./layouts/MainLayout";
+
+// Pages
+import Dashboard from "./pages/dashboard/Dashboard";
+
 import CustomerList from "./pages/customers/CustomerList";
 import AddCustomer from "./pages/customers/AddCustomer";
 import EditCustomer from "./pages/customers/EditCustomer";
 
-// MACHINE PAGES
 import MachineList from "./pages/machines/MachineList";
 import AddMachine from "./pages/machines/AddMachine";
 import EditMachine from "./pages/machines/EditMachine";
 
+import ServiceRecordList from "./pages/serviceRecords/ServiceRecordList";
+import AddServiceRecord from "./pages/serviceRecords/AddServiceRecord";
+import EditServiceRecord from "./pages/serviceRecords/EditServiceRecord";
+
+// ⭐ NEW ⭐ Reminder Page
+import ReminderPage from "./pages/reminders/ReminderPage";
+import ReminderDashboard from "./pages/reminders/ReminderDashboard";
+
+
 function App() {
   return (
     <Router>
-      {/* Navigation Bar */}
-      <div style={styles.navbar}>
-        <h2 style={styles.logo}>Weigh Lanka System</h2>
+      <Routes>
 
-        {/* Customer Links */}
-        <Link to="/" style={styles.link}>Customers</Link>
-        <Link to="/add-customer" style={styles.link}>Add Customer</Link>
+        {/* ALL PAGES INSIDE MAINLAYOUT */}
+        <Route path="/" element={<MainLayout />}>
 
-        {/* Machine Links */}
-        <Link to="/machines" style={styles.link}>Machines</Link>
-        <Link to="/add-machine" style={styles.link}>Add Machine</Link>
-      </div>
+          {/* Dashboard */}
+          <Route path="dashboard" element={<Dashboard />} />
 
-      {/* Page Content */}
-      <div style={styles.container}>
-        <Routes>
+          {/* Customers */}
+          <Route path="customers" element={<CustomerList />} />
+          <Route path="add-customer" element={<AddCustomer />} />
+          <Route path="edit-customer/:id" element={<EditCustomer />} />
 
-          {/* Customer Routes */}
-          <Route path="/" element={<CustomerList />} />
-          <Route path="/add-customer" element={<AddCustomer />} />
-          <Route path="/edit-customer/:id" element={<EditCustomer />} />
+          {/* Machines */}
+          <Route path="machines" element={<MachineList />} />
+          <Route path="add-machine" element={<AddMachine />} />
+          <Route path="edit-machine/:id" element={<EditMachine />} />
 
-          {/* Machine Routes */}
-          <Route path="/machines" element={<MachineList />} />
-          <Route path="/add-machine" element={<AddMachine />} />
-          <Route path="/edit-machine/:id" element={<EditMachine />} />
-        </Routes>
-      </div>
+          {/* Service Records */}
+          <Route path="service-records" element={<ServiceRecordList />} />
+          <Route path="add-service-record" element={<AddServiceRecord />} />
+          <Route path="edit-service-record/:id" element={<EditServiceRecord />} />
+
+          {/* ⭐ Reminders */}
+          <Route path="reminders" element={<ReminderDashboard />} />
+
+
+
+
+        </Route>
+
+      </Routes>
     </Router>
   );
 }
-
-const styles = {
-  navbar: {
-    background: "#222",
-    padding: "15px",
-    display: "flex",
-    gap: "20px",
-    alignItems: "center",
-  },
-  logo: { color: "#61dafb", marginRight: "40px" },
-  link: { color: "white", textDecoration: "none", fontSize: "18px" },
-  container: { padding: "20px" }
-};
 
 export default App;

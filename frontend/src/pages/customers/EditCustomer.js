@@ -34,49 +34,72 @@ function EditCustomer() {
     e.preventDefault();
     try {
       await axios.put(`http://localhost:9090/api/customers/${id}`, customer);
-      navigate("/");
+      navigate("/customers");
     } catch (err) {
       console.error("Error updating", err);
     }
   };
 
   return (
-    <div>
+    <div style={{ paddingLeft: "270px", paddingTop: "20px" }}>
       <h2>Edit Customer</h2>
 
-      <form onSubmit={updateCustomer}>
+      <form onSubmit={updateCustomer} style={formStyle}>
+        <label>Name:</label>
         <input
           type="text"
           name="customerName"
           value={customer.customerName}
           onChange={handleChange}
-        /><br/>
+        />
 
+        <label>Address:</label>
         <input
           type="text"
           name="address"
           value={customer.address}
           onChange={handleChange}
-        /><br/>
+        />
 
+        <label>Phone:</label>
         <input
           type="text"
           name="phone"
           value={customer.phone}
           onChange={handleChange}
-        /><br/>
+        />
 
+        <label>Email:</label>
         <input
           type="email"
           name="email"
           value={customer.email}
           onChange={handleChange}
-        /><br/>
+        />
 
-        <button type="submit">Update</button>
+        <button type="submit" style={btn}>Update</button>
       </form>
     </div>
   );
 }
+
+const formStyle = {
+  display: "flex",
+  flexDirection: "column",
+  width: "400px",
+  gap: "12px",
+  background: "white",
+  padding: "20px",
+  borderRadius: "6px"
+};
+
+const btn = {
+  padding: "10px 15px",
+  background: "#1976d2",
+  color: "white",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer"
+};
 
 export default EditCustomer;

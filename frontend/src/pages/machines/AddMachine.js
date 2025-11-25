@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import {
+  TextField,
+  Button,
+  MenuItem,
+  Paper,
+  Grid,
+  Typography,
+  Box
+} from "@mui/material";
 
 const AddMachine = () => {
   const navigate = useNavigate();
@@ -18,7 +27,6 @@ const AddMachine = () => {
 
   const saveMachine = async (e) => {
     e.preventDefault();
-
     try {
       await axios.post("http://localhost:9090/api/machines", machine);
       alert("Machine added successfully!");
@@ -30,38 +38,79 @@ const AddMachine = () => {
   };
 
   return (
-    <div>
-      <h2>Add Machine</h2>
+    <Box sx={{ paddingLeft: "270px", paddingTop: 4 }}>
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Add Machine
+      </Typography>
 
-      <form onSubmit={saveMachine}>
-        <div>
-          <label>Machine Name:</label><br />
-          <input type="text" name="machineName" required onChange={handleChange} />
-        </div>
+      <Paper elevation={3} sx={{ padding: 4, width: "60%" }}>
+        <form onSubmit={saveMachine}>
+          <Grid container spacing={3}>
 
-        <div>
-          <label>Location:</label><br />
-          <input type="text" name="location" required onChange={handleChange} />
-        </div>
+            <Grid item xs={12}>
+              <TextField
+                label="Machine Name"
+                name="machineName"
+                fullWidth
+                required
+                value={machine.machineName}
+                onChange={handleChange}
+              />
+            </Grid>
 
-        <div>
-          <label>Status:</label><br />
-          <select name="status" required onChange={handleChange}>
-            <option value="">Select</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Under Maintenance">Under Maintenance</option>
-          </select>
-        </div>
+            <Grid item xs={12}>
+              <TextField
+                label="Location"
+                name="location"
+                fullWidth
+                required
+                value={machine.location}
+                onChange={handleChange}
+              />
+            </Grid>
 
-        <div>
-          <label>Type:</label><br />
-          <input type="text" name="type" required onChange={handleChange} />
-        </div>
+            <Grid item xs={12}>
+              <TextField
+                label="Status"
+                name="status"
+                fullWidth
+                required
+                select
+                value={machine.status}
+                onChange={handleChange}
+              >
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                <MenuItem value="Under Maintenance">Under Maintenance</MenuItem>
+              </TextField>
+            </Grid>
 
-        <button type="submit" style={{ marginTop: "15px" }}>Save Machine</button>
-      </form>
-    </div>
+            <Grid item xs={12}>
+              <TextField
+                label="Machine Type"
+                name="type"
+                fullWidth
+                required
+                value={machine.type}
+                onChange={handleChange}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                sx={{ paddingX: 4, paddingY: 1 }}
+              >
+                Save Machine
+              </Button>
+            </Grid>
+
+          </Grid>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 

@@ -32,36 +32,53 @@ const MachineList = () => {
   };
 
   return (
-    <div>
-      <h2>Machines List</h2>
+    <div style={{ paddingLeft: "270px", paddingTop: "20px" }}>
+      
+      {/* HEADER WITH ADD MACHINE BUTTON */}
+      <div style={styles.header}>
+        <h2>Machines List</h2>
 
-      <table border="1" cellPadding="10" style={{ width: "100%", marginTop: "20px" }}>
+        <Link to="/add-machine">
+          <button style={styles.addBtn}>+ Add Machine</button>
+        </Link>
+      </div>
+
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          background: "white",
+          marginTop: "20px",
+        }}
+      >
         <thead>
-          <tr>
-            <th>#</th>
-            <th>Machine Name</th>
-            <th>Location</th>
-            <th>Status</th>
-            <th>Type</th>
-            <th>Actions</th>
+          <tr style={{ background: "#f1f1f1" }}>
+            <th style={thStyle}>#</th>
+            <th style={thStyle}>Machine Name</th>
+            <th style={thStyle}>Location</th>
+            <th style={thStyle}>Status</th>
+            <th style={thStyle}>Type</th>
+            <th style={thStyle}>Actions</th>
           </tr>
         </thead>
 
         <tbody>
           {machines.map((m, index) => (
             <tr key={m.id}>
-              <td>{index + 1}</td>
-              <td>{m.machineName}</td>
-              <td>{m.location}</td>
-              <td>{m.status}</td>
-              <td>{m.type}</td>
+              <td style={tdStyle}>{index + 1}</td>
+              <td style={tdStyle}>{m.machineName}</td>
+              <td style={tdStyle}>{m.location}</td>
+              <td style={tdStyle}>{m.status}</td>
+              <td style={tdStyle}>{m.type}</td>
 
-              <td>
+              <td style={tdStyle}>
                 <Link to={`/edit-machine/${m.id}`}>
-                  <button style={{ marginRight: "10px" }}>Edit</button>
+                  <button style={btnEdit}>Edit</button>
                 </Link>
 
-                <button onClick={() => deleteMachine(m.id)}>Delete</button>
+                <button onClick={() => deleteMachine(m.id)} style={btnDelete}>
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
@@ -69,6 +86,54 @@ const MachineList = () => {
       </table>
     </div>
   );
+};
+
+const styles = {
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "15px",
+  },
+  addBtn: {
+    background: "#2e7d32",
+    color: "white",
+    padding: "8px 15px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+};
+
+const thStyle = {
+  padding: "12px",
+  borderBottom: "1px solid #ccc",
+  textAlign: "left",
+};
+
+const tdStyle = {
+  padding: "12px",
+  borderBottom: "1px solid #eee",
+};
+
+const btnEdit = {
+  padding: "5px 10px",
+  background: "#1976d2",
+  color: "white",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer",
+  marginRight: "10px",
+};
+
+const btnDelete = {
+  padding: "5px 10px",
+  background: "#d32f2f",
+  color: "white",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer",
 };
 
 export default MachineList;
