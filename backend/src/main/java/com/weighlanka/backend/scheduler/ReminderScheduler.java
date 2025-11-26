@@ -31,7 +31,7 @@ public class ReminderScheduler {
         this.emailService = emailService;
     }
 
-    // Runs EVERY DAY at 8:00 AM
+    // Runs EVERY DAY at 8:00 AM (production mode)
     @Scheduled(cron = "0 0 8 * * *")
     public void sendYearlyServiceReminders() {
 
@@ -69,7 +69,6 @@ public class ReminderScheduler {
                     "✔ Email sent to " + customer.getEmail() +
                             " for machine model " + machine.getModel()
             );
-
         }
     }
 }

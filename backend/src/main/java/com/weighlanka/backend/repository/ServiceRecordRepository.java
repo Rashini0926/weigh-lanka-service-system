@@ -12,8 +12,9 @@ public interface ServiceRecordRepository extends MongoRepository<ServiceRecord, 
 
     List<ServiceRecord> findByMachineId(String machineId);
 
+    // Used by ReminderScheduler to find due reminders
     List<ServiceRecord> findByNextServiceDate(LocalDate nextServiceDate);
 
-    // NEW – used for daily report (Excel-style table)
+    // Used by report endpoint
     List<ServiceRecord> findByServiceDate(LocalDate serviceDate);
 }
