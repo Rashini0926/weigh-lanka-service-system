@@ -43,6 +43,7 @@ public class CustomerService {
         existing.setAddress(updatedCustomer.getAddress());
         existing.setPhone(updatedCustomer.getPhone());
         existing.setEmail(updatedCustomer.getEmail());
+        existing.setLocation(updatedCustomer.getLocation()); // NEW
 
         return customerRepository.save(existing);
     }

@@ -65,8 +65,11 @@ public class ReminderScheduler {
                     machine.getId()
             );
 
-            System.out.println("✔ Email sent to " + customer.getEmail() +
-                    " for machine " + machine.getMachineName());
+            System.out.println(
+                    "✔ Email sent to " + customer.getEmail() +
+                            " for machine model " + machine.getModel()
+            );
+
         }
     }
 }

@@ -1,7 +1,9 @@
 package com.weighlanka.backend.service;
 
+import com.weighlanka.backend.dto.ServiceTableRow;
 import com.weighlanka.backend.model.ServiceRecord;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ServiceRecordService {
@@ -19,4 +21,7 @@ public interface ServiceRecordService {
     List<ServiceRecord> getRecordsByMachine(String machineId);
 
     void deleteRecord(String id);
+
+    // NEW – for Excel-style table
+    List<ServiceTableRow> getDailyReport(LocalDate date);
 }

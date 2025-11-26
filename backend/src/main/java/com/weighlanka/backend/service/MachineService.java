@@ -9,9 +9,11 @@ public interface MachineService {
 
     Machine updateMachine(String id, Machine machine);
 
-    Machine getMachineById(String id);  // Scheduler uses this
+    Machine getMachineById(String id);
 
     List<Machine> getAllMachines();
+
+    List<Machine> getMachinesByCustomer(String customerId);
 
     void deleteMachine(String id);
 }

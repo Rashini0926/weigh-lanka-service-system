@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/machines")
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class MachineController {
 
     private final MachineService machineService;
@@ -30,6 +30,11 @@ public class MachineController {
     @GetMapping("/{id}")
     public Machine getMachineById(@PathVariable String id) {
         return machineService.getMachineById(id);
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public List<Machine> getMachinesByCustomer(@PathVariable String customerId) {
+        return machineService.getMachinesByCustomer(customerId);
     }
 
     @PutMapping("/{id}")

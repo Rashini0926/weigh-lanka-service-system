@@ -13,8 +13,8 @@ public class ServiceRecord {
     @Id
     private String id;
 
-    private String customerId;     // Reference to Customer
-    private String machineId;      // Reference to Machine
+    private String customerId;
+    private String machineId;
 
     private LocalDate serviceDate;
     private LocalDate nextServiceDate;
@@ -22,4 +22,8 @@ public class ServiceRecord {
     private String technicianName;
     private String remarks;
     private double serviceCost;
+
+    // NEW FIELDS – for Excel table
+    private Integer visitNo;   // NO column
+    private String invoiceNo;  // INV NO column
 }

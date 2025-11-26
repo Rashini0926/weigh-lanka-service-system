@@ -15,4 +15,7 @@ public class Customer {
     private String address;
     private String phone;
     private String email;
+
+    // NEW FIELD – for Excel LOCATION column
+    private String location;   // e.g. "Embilipitiya"
 }

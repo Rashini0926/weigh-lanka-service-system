@@ -1,9 +1,12 @@
 package com.weighlanka.backend.controller;
 
+import com.weighlanka.backend.dto.ServiceTableRow;
 import com.weighlanka.backend.model.ServiceRecord;
 import com.weighlanka.backend.service.ServiceRecordService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -53,5 +56,13 @@ public class ServiceRecordController {
     @DeleteMapping("/{id}")
     public void deleteRecord(@PathVariable String id) {
         service.deleteRecord(id);
+    }
+
+    // NEW – Excel-style table for one date
+    @GetMapping("/report")
+    public List<ServiceTableRow> getDailyReport(
+            @RequestParam("date")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return service.getDailyReport(date);
     }
 }
