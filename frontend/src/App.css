@@ -1,38 +1,118 @@
-.App {
+.app {
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.app-header {
+  background: #003366;
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.app-header nav {
+  display: flex;
+  gap: 16px;
+}
+
+.app-header nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.app-header nav a:hover {
+  text-decoration: underline;
+}
+
+.app-main {
+  padding: 20px;
+}
+
+/* cards / forms */
+
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.form-card label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.form-card input,
+.form-card textarea,
+.form-card select {
+  margin-top: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+.form-card button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: none;
+  background: #003366;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-card button:hover {
+  opacity: 0.9;
+}
+
+.info {
+  margin-top: 8px;
+  font-size: 13px;
+  color: green;
+}
+
+.error {
+  color: red;
+}
+
+/* tables */
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.report-table,
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.report-table th,
+.report-table td,
+.simple-table th,
+.simple-table td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.report-table th {
+  background: #ffe000;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.simple-table th {
+  background: #e0e0e0;
 }

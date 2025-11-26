@@ -1,63 +1,36 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-import MainLayout from "./layouts/MainLayout";
-
-// Pages
-import Dashboard from "./pages/dashboard/Dashboard";
-
-import CustomerList from "./pages/customers/CustomerList";
-import AddCustomer from "./pages/customers/AddCustomer";
-import EditCustomer from "./pages/customers/EditCustomer";
-
-import MachineList from "./pages/machines/MachineList";
-import AddMachine from "./pages/machines/AddMachine";
-import EditMachine from "./pages/machines/EditMachine";
-
-import ServiceRecordList from "./pages/serviceRecords/ServiceRecordList";
-import AddServiceRecord from "./pages/serviceRecords/AddServiceRecord";
-import EditServiceRecord from "./pages/serviceRecords/EditServiceRecord";
-
-// ⭐ NEW ⭐ Reminder Page
-import ReminderPage from "./pages/reminders/ReminderPage";
-import ReminderDashboard from "./pages/reminders/ReminderDashboard";
-
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import ServiceReportPage from "./pages/ServiceReportPage";
+import CustomersPage from "./pages/CustomersPage";
+import MachinesPage from "./pages/MachinesPage";
+import ServiceEntryPage from "./pages/ServiceEntryPage";
+import "./App.css";
 
 function App() {
   return (
     <Router>
-      <Routes>
+      <div className="app">
+        <header className="app-header">
+          <h1>Weigh Lanka Service System</h1>
+          <nav>
+            <Link to="/service-entry">Daily Service Entry</Link>
+            <Link to="/report">Daily Report</Link>
+            <Link to="/customers">Customers</Link>
+            <Link to="/machines">Machines</Link>
+          </nav>
+        </header>
 
-        {/* ALL PAGES INSIDE MAINLAYOUT */}
-        <Route path="/" element={<MainLayout />}>
-
-          {/* Dashboard */}
-          <Route path="dashboard" element={<Dashboard />} />
-
-          {/* Customers */}
-          <Route path="customers" element={<CustomerList />} />
-          <Route path="add-customer" element={<AddCustomer />} />
-          <Route path="edit-customer/:id" element={<EditCustomer />} />
-
-          {/* Machines */}
-          <Route path="machines" element={<MachineList />} />
-          <Route path="add-machine" element={<AddMachine />} />
-          <Route path="edit-machine/:id" element={<EditMachine />} />
-
-          {/* Service Records */}
-          <Route path="service-records" element={<ServiceRecordList />} />
-          <Route path="add-service-record" element={<AddServiceRecord />} />
-          <Route path="edit-service-record/:id" element={<EditServiceRecord />} />
-
-          {/* ⭐ Reminders */}
-          <Route path="reminders" element={<ReminderDashboard />} />
-
-
-
-
-        </Route>
-
-      </Routes>
+        <main className="app-main">
+          <Routes>
+            <Route path="/service-entry" element={<ServiceEntryPage />} />
+            <Route path="/report" element={<ServiceReportPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/machines" element={<MachinesPage />} />
+            {/* default page */}
+            <Route path="*" element={<ServiceEntryPage />} />
+          </Routes>
+        </main>
+      </div>
     </Router>
   );
 }
