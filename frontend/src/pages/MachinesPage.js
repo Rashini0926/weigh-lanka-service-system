@@ -19,13 +19,14 @@ function MachinesPage() {
     idNo: "",
   });
   const [message, setMessage] = useState("");
+  const [editingId, setEditingId] = useState(null); // null = create mode
 
   const loadMachines = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/machines`);
       setMachines(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error loading machines:", err);
     }
   };
 
@@ -34,7 +35,7 @@ function MachinesPage() {
       const res = await axios.get(`${API_BASE_URL}/customers`);
       setCustomers(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error loading customers:", err);
     }
   };
 
@@ -52,9 +53,24 @@ function MachinesPage() {
     e.preventDefault();
     setMessage("");
 
+    const payload = {
+      ...form,
+      installedDate: form.installedDate || null,
+      lastServiceDate: form.lastServiceDate || null,
+      nextServiceDate: form.nextServiceDate || null,
+    };
+
     try {
-      await axios.post(`${API_BASE_URL}/machines`, form);
-      setMessage("Machine saved.");
+      if (editingId) {
+        // UPDATE
+        await axios.put(`${API_BASE_URL}/machines/${editingId}`, payload);
+        setMessage("Machine updated.");
+      } else {
+        // CREATE
+        await axios.post(`${API_BASE_URL}/machines`, payload);
+        setMessage("Machine saved.");
+      }
+
       setForm({
         customerId: "",
         model: "",
@@ -67,6 +83,7 @@ function MachinesPage() {
         regNo: "",
         idNo: "",
       });
+      setEditingId(null);
       loadMachines();
     } catch (err) {
       console.error(err);
@@ -74,12 +91,73 @@ function MachinesPage() {
     }
   };
 
+  const handleEdit = (machine) => {
+    setEditingId(machine.id);
+    setForm({
+      customerId: machine.customerId || "",
+      model: machine.model || "",
+      serialNumber: machine.serialNumber || "",
+      installedDate: machine.installedDate || "",
+      warranty: machine.warranty || "",
+      lastServiceDate: machine.lastServiceDate || "",
+      nextServiceDate: machine.nextServiceDate || "",
+      capacity: machine.capacity || "",
+      regNo: machine.regNo || "",
+      idNo: machine.idNo || "",
+    });
+    setMessage("");
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this machine?")) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/machines/${id}`);
+      setMessage("Machine deleted.");
+      if (editingId === id) {
+        setEditingId(null);
+        setForm({
+          customerId: "",
+          model: "",
+          serialNumber: "",
+          installedDate: "",
+          warranty: "",
+          lastServiceDate: "",
+          nextServiceDate: "",
+          capacity: "",
+          regNo: "",
+          idNo: "",
+        });
+      }
+      loadMachines();
+    } catch (err) {
+      console.error(err);
+      setMessage("Failed to delete machine.");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setForm({
+      customerId: "",
+      model: "",
+      serialNumber: "",
+      installedDate: "",
+      warranty: "",
+      lastServiceDate: "",
+      nextServiceDate: "",
+      capacity: "",
+      regNo: "",
+      idNo: "",
+    });
+    setMessage("");
+  };
+
   return (
     <div>
       <h2>Machines</h2>
 
       <form onSubmit={handleSubmit} className="card form-card">
-        <h3>Add Machine</h3>
+        <h3>{editingId ? "Edit Machine" : "Add Machine"}</h3>
 
         <label>
           Customer:
@@ -176,7 +254,17 @@ function MachinesPage() {
           />
         </label>
 
-        <button type="submit">Save Machine</button>
+        <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+          <button type="submit">
+            {editingId ? "Update Machine" : "Save Machine"}
+          </button>
+          {editingId && (
+            <button type="button" onClick={handleCancelEdit}>
+              Cancel
+            </button>
+          )}
+        </div>
+
         {message && <p className="info">{message}</p>}
       </form>
 
@@ -193,6 +281,7 @@ function MachinesPage() {
               <th>ID No</th>
               <th>Last Service</th>
               <th>Next Service</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -208,9 +297,20 @@ function MachinesPage() {
                   <td>{m.idNo}</td>
                   <td>{m.lastServiceDate}</td>
                   <td>{m.nextServiceDate}</td>
+                  <td>
+                    <button onClick={() => handleEdit(m)}>Edit</button>
+                    <button onClick={() => handleDelete(m.id)}>Delete</button>
+                  </td>
                 </tr>
               );
             })}
+            {machines.length === 0 && (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center" }}>
+                  No machines yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
