@@ -38,7 +38,7 @@ function ServiceReportPage() {
       setRows(response.data);
     } catch (err) {
       console.error(err);
-      setError("Failed to load report. Check backend is running.");
+      setError("Failed to load report.");
     } finally {
       setLoading(false);
     }
@@ -166,9 +166,223 @@ function ServiceReportPage() {
 
   return (
     <div className="page-container">
+      <style>{`
+        .page-container {
+          padding: 16px 24px 32px;
+          background: #f5f5f5;
+          min-height: calc(100vh - 60px);
+          font-family: Arial, sans-serif;
+        }
+
+        .page-header {
+          margin-bottom: 14px;
+        }
+
+        .page-title {
+          margin: 0;
+          font-size: 22px;
+          font-weight: 700;
+        }
+
+        .page-subtitle {
+          margin: 4px 0 0;
+          font-size: 13px;
+          color: #6b7280;
+        }
+
+        .card {
+          background: #ffffff;
+          border-radius: 10px;
+          box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+          padding: 14px 16px;
+        }
+
+        .report-toolbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .toolbar-left,
+        .toolbar-right {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .field-label {
+          font-size: 13px;
+          color: #111827;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .field-input {
+          padding: 6px 8px;
+          border-radius: 6px;
+          border: 1px solid #d1d5db;
+          font-size: 13px;
+        }
+
+        .btn {
+          border-radius: 999px;
+          padding: 6px 14px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid transparent;
+        }
+
+        .btn-primary {
+          background: #003366;
+          color: #ffffff;
+          border-color: #003366;
+        }
+
+        .btn-primary:hover {
+          background: #002244;
+        }
+
+        .btn-outline {
+          background: #ffffff;
+          color: #003366;
+          border-color: #cbd5e1;
+        }
+
+        .btn-outline:hover {
+          background: #f1f5f9;
+        }
+
+        .btn-secondary {
+          background: #16a34a;
+          color: #ffffff;
+          border-color: #15803d;
+        }
+
+        .btn-secondary:hover {
+          background: #15803d;
+        }
+
+        .error {
+          color: #b91c1c;
+          font-size: 13px;
+        }
+
+        .muted {
+          font-size: 13px;
+          color: #6b7280;
+        }
+
+        .report-card {
+          margin-top: 8px;
+        }
+
+        .report-header {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 8px;
+        }
+
+        .report-logo {
+          width: 70px;
+          height: auto;
+        }
+
+        .report-title {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 700;
+        }
+
+        .report-subtitle {
+          margin: 2px 0;
+          font-size: 12px;
+          color: #4b5563;
+        }
+
+        .badge-date {
+          font-weight: 600;
+        }
+
+        .inline-input {
+          border: none;
+          border-bottom: 1px solid #d1d5db;
+          font-size: 12px;
+          padding: 2px 4px;
+          margin-left: 4px;
+        }
+
+        .inline-input:focus {
+          outline: none;
+          border-bottom-color: #2563eb;
+        }
+
+        .email-input {
+          min-width: 170px;
+        }
+
+        .report-divider {
+          margin: 8px 0 10px;
+          border: none;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .table-wrapper {
+          overflow-x: auto;
+        }
+
+        .report-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 11px;
+        }
+
+        .report-table th,
+        .report-table td {
+          border: 1px solid #e5e7eb;
+          padding: 4px 6px;
+          text-align: left;
+          vertical-align: top;
+        }
+
+        .report-table th {
+          background: #f3f4f6;
+          text-transform: uppercase;
+          font-size: 10px;
+        }
+
+        .signature-block {
+          margin-top: 10px;
+          font-size: 12px;
+          color: #111827;
+        }
+
+        .signature-input {
+          border: none;
+          border-bottom: 1px solid #d1d5db;
+          margin-left: 4px;
+          padding: 2px 4px;
+          font-size: 12px;
+        }
+
+        .signature-input.short {
+          max-width: 120px;
+        }
+
+        .signature-input:focus {
+          outline: none;
+          border-bottom-color: #2563eb;
+        }
+      `}</style>
+
       <div className="page-header">
         <h2 className="page-title">Daily Service Report</h2>
-        <p className="page-subtitle">View and export the service sheet.</p>
+        <p className="page-subtitle">View and export service details for a date.</p>
       </div>
 
       {/* ---------------- Toolbar ---------------- */}
@@ -231,7 +445,7 @@ function ServiceReportPage() {
               <h2 className="report-title">WEIGH LANKA SERVICE REPORT</h2>
 
               <p className="report-subtitle">
-                Daily Service Report | Date:{" "}
+                Daily Service Report | Date:&nbsp;
                 <span className="badge-date">{date}</span>
               </p>
 

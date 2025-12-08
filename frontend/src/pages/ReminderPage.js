@@ -42,7 +42,7 @@ function ReminderPage() {
         setRecords(rRes.data || []);
       } catch (err) {
         console.error("Error loading reminders:", err);
-        setError("Failed to load reminders. Check backend.");
+        setError("Failed to load reminders.");
       } finally {
         setLoading(false);
       }
@@ -106,7 +106,7 @@ function ReminderPage() {
   // ---------- WHATSAPP CONTACT ----------
   const handleContact = (row) => {
     if (!row.phone) {
-      alert("No phone number available for this customer.");
+      alert("No phone number for this customer.");
       return;
     }
 
@@ -126,8 +126,10 @@ function ReminderPage() {
       {/* INLINE CSS */}
       <style>{`
         .reminders-wrapper {
-          padding: 20px;
+          padding: 16px 24px 24px;
           font-family: Arial, sans-serif;
+          background: #f5f5f5;
+          min-height: calc(100vh - 60px);
         }
         .rem-card {
           background: #ffffff;
@@ -138,14 +140,14 @@ function ReminderPage() {
           box-shadow: 0 2px 6px rgba(15,23,42,0.08);
         }
         .rem-title {
-          font-size: 24px;
+          font-size: 22px;
           font-weight: 700;
           margin: 0 0 4px;
         }
         .rem-sub {
           font-size: 13px;
           color: #6b7280;
-          margin: 0 0 16px;
+          margin: 0 0 12px;
         }
         .rem-info {
           font-size: 13px;
@@ -223,9 +225,7 @@ function ReminderPage() {
         {!loading && !error && (
           <>
             <p className="rem-info">
-              This page lists all scales that are <strong>Overdue</strong>,{" "}
-              <strong>Urgent (0–30 days)</strong>, or{" "}
-              <strong>Due Soon (31–90 days)</strong>.
+              Overdue, urgent (0–30 days) and due soon (31–90 days) services.
             </p>
 
             {rows.length === 0 ? (

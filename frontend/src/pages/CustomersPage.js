@@ -19,7 +19,7 @@ function CustomersPage() {
   const loadCustomers = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/customers`);
-      setCustomers(res.data || []);
+      setCustomers(res.data);
     } catch (err) {
       console.error("Error loading customers:", err);
     }
@@ -110,249 +110,369 @@ function CustomersPage() {
     setMessage("");
   };
 
-  // filter by search text
+  // simple search filter
   const filteredCustomers = customers.filter((c) => {
-    const text = (
-      (c.customerName || "") +
-      " " +
-      (c.location || "") +
-      " " +
-      (c.phone || "") +
-      " " +
-      (c.email || "")
-    ).toLowerCase();
-    return text.includes(search.toLowerCase());
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      (c.customerName || "").toLowerCase().includes(q) ||
+      (c.location || "").toLowerCase().includes(q) ||
+      (c.phone || "").toLowerCase().includes(q) ||
+      (c.email || "").toLowerCase().includes(q)
+    );
   });
 
   return (
     <div className="customers-page">
-      {/* INLINE CSS FOR THIS PAGE */}
+      {/* Inline CSS for this page */}
       <style>{`
         .customers-page {
-          padding: 16px 0 32px;
+          padding: 16px 24px 24px;
           font-family: Arial, sans-serif;
+          background: #f5f5f5;
+          min-height: calc(100vh - 60px);
         }
+
         .customers-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
+
         .customers-title {
           margin: 0;
           font-size: 22px;
           font-weight: 700;
+          color: #0f172a;
         }
+
         .customers-subtitle {
           margin: 4px 0 0;
           font-size: 13px;
           color: #6b7280;
         }
+
         .customers-layout {
           display: grid;
-          grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr);
+          grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.7fr);
           gap: 16px;
         }
+
         @media (max-width: 900px) {
           .customers-layout {
             grid-template-columns: 1fr;
           }
         }
-        .customers-card {
+
+        .customers-form-card,
+        .customers-list-card {
           background: #ffffff;
-          border-radius: 8px;
+          border-radius: 14px;
+          box-shadow: 0 8px 20px rgba(15,23,42,0.06);
           padding: 16px 18px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+          border: 1px solid rgba(226,232,240,0.9);
         }
 
-        /* form styles */
         .customers-form-title {
-          margin: 0 0 10px;
+          margin: 0 0 8px;
           font-size: 16px;
           font-weight: 600;
+          color: #0f172a;
         }
+
         .customers-form-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 8px;
+          gap: 10px;
         }
-        .customers-label {
+
+        .customers-form-field label {
+          font-size: 13px;
+          color: #111827;
           display: flex;
           flex-direction: column;
-          font-size: 13px;
+          gap: 4px;
         }
-        .customers-label span {
-          margin-bottom: 2px;
-        }
-        .customers-input,
-        .customers-textarea {
+
+        .customers-form-field input,
+        .customers-form-field textarea {
+          padding: 7px 9px;
           border-radius: 6px;
           border: 1px solid #d1d5db;
-          padding: 6px 10px;
           font-size: 13px;
+          transition: border-color 0.12s ease, box-shadow 0.12s ease;
         }
-        .customers-textarea {
-          resize: vertical;
+
+        .customers-form-field input:focus,
+        .customers-form-field textarea:focus {
+          outline: none;
+          border-color: #2563eb;
+          box-shadow: 0 0 0 1px rgba(37,99,235,0.25);
+        }
+
+        .customers-form-field textarea {
           min-height: 60px;
+          resize: vertical;
         }
+
         .customers-actions {
           display: flex;
           gap: 8px;
           margin-top: 10px;
+          flex-wrap: wrap;
         }
+
         .btn-main {
           border: none;
-          border-radius: 6px;
-          padding: 6px 14px;
+          border-radius: 999px;
+          padding: 7px 16px;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
-          background: #003366;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
           color: #ffffff;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          transition: background 0.15s ease, transform 0.1s ease;
         }
+
         .btn-main:hover {
-          background: #002244;
+          background: linear-gradient(135deg, #020617, #1d4ed8);
         }
+
+        .btn-main:active {
+          transform: translateY(1px);
+        }
+
         .btn-secondary {
           border: 1px solid #d1d5db;
-          border-radius: 6px;
-          padding: 6px 14px;
+          border-radius: 999px;
+          padding: 7px 14px;
           font-size: 13px;
           font-weight: 500;
           cursor: pointer;
           background: #ffffff;
           color: #374151;
+          transition: background 0.15s ease, border-color 0.15s ease;
         }
+
         .btn-secondary:hover {
           background: #f3f4f6;
+          border-color: #9ca3af;
         }
+
         .customers-message {
           margin-top: 8px;
           font-size: 13px;
           color: green;
         }
 
-        /* right side: search + table */
+        /* List / table side */
         .customers-list-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 8px;
-          gap: 8px;
-          flex-wrap: wrap;
+          margin-bottom: 10px;
+          gap: 10px;
         }
+
+        .customers-list-title-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
         .customers-list-title {
           margin: 0;
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 600;
+          color: #0f172a;
         }
+
+        .customers-count {
+          font-size: 12px;
+          color: #6b7280;
+        }
+
         .customers-search {
           display: flex;
           align-items: center;
           gap: 6px;
-        }
-        .customers-search input {
-          border-radius: 6px;
-          border: 1px solid #d1d5db;
-          padding: 6px 10px;
-          font-size: 13px;
-          min-width: 180px;
+          background: #f9fafb;
+          border-radius: 999px;
+          padding: 4px 10px;
+          border: 1px solid #e5e7eb;
         }
 
-        .customers-table-actions button {
-          border-radius: 4px;
-          border: 1px solid #d1d5db;
-          padding: 4px 8px;
+        .customers-search span {
           font-size: 12px;
-          margin-right: 4px;
-          cursor: pointer;
+          color: #6b7280;
         }
-        .customers-table-actions button:first-child {
+
+        .customers-search input {
+          border: none;
+          background: transparent;
+          font-size: 12px;
+          width: 150px;
+        }
+
+        .customers-search input:focus {
+          outline: none;
+        }
+
+        .customers-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+        }
+
+        .customers-table th,
+        .customers-table td {
+          border: 1px solid #e5e7eb;
+          padding: 6px 8px;
+          text-align: left;
+          vertical-align: top;
+        }
+
+        .customers-table th {
+          background: #f3f4f6;
+          font-size: 12px;
+          color: #4b5563;
+        }
+
+        .customers-table tbody tr:nth-child(even) {
+          background: #f9fafb;
+        }
+
+        .customers-table tbody tr:hover {
           background: #e0f2fe;
-          border-color: #60a5fa;
         }
-        .customers-table-actions button:last-child {
+
+        .customers-tags {
+          font-size: 11px;
+          color: #6b7280;
+        }
+
+        .customers-actions-cell {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .btn-small {
+          border-radius: 999px;
+          padding: 4px 10px;
+          font-size: 11px;
+          border: none;
+          cursor: pointer;
+          transition: background 0.12s ease, transform 0.1s ease;
+        }
+
+        .btn-small:active {
+          transform: translateY(1px);
+        }
+
+        .btn-edit {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        .btn-edit:hover {
+          background: #bae6fd;
+        }
+
+        .btn-delete {
           background: #fee2e2;
-          border-color: #f87171;
+          color: #b91c1c;
+        }
+
+        .btn-delete:hover {
+          background: #fecaca;
         }
       `}</style>
 
-      {/* HEADER */}
       <div className="customers-header">
-        <div>
-          <h2 className="customers-title">Customers</h2>
-          <p className="customers-subtitle">
-            Manage customer details used for service reports and reminders.
-          </p>
-        </div>
+        <h2 className="customers-title">Customers</h2>
+        <p className="customers-subtitle">Add and update customer details.</p>
       </div>
 
       <div className="customers-layout">
         {/* LEFT: FORM */}
-        <div className="customers-card">
+        <div className="customers-form-card">
           <h3 className="customers-form-title">
-            {editingId ? "Edit Customer" : "Add New Customer"}
+            {editingId ? "Edit Customer" : "New Customer"}
           </h3>
 
-          <form onSubmit={handleSubmit} className="customers-form-grid">
-            <label className="customers-label">
-              <span>Name</span>
-              <input
-                name="customerName"
-                className="customers-input"
-                value={form.customerName}
-                onChange={handleChange}
-                required
-              />
-            </label>
+          <form onSubmit={handleSubmit}>
+            <div className="customers-form-grid">
+              <div className="customers-form-field">
+                <label>
+                  Customer Name
+                  <input
+                    name="customerName"
+                    value={form.customerName}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. Priyangani Edirisinghe / Fruit Shop"
+                  />
+                </label>
+              </div>
 
-            <label className="customers-label">
-              <span>Location</span>
-              <input
-                name="location"
-                className="customers-input"
-                value={form.location}
-                onChange={handleChange}
-                required
-              />
-            </label>
+              <div className="customers-form-field">
+                <label>
+                  Location / Town
+                  <input
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. Embilipitiya"
+                  />
+                </label>
+              </div>
 
-            <label className="customers-label">
-              <span>Phone</span>
-              <input
-                name="phone"
-                className="customers-input"
-                value={form.phone}
-                onChange={handleChange}
-                required
-              />
-            </label>
+              <div className="customers-form-field">
+                <label>
+                  Phone Number
+                  <input
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. 0771234567"
+                  />
+                </label>
+              </div>
 
-            <label className="customers-label">
-              <span>Email</span>
-              <input
-                type="email"
-                name="email"
-                className="customers-input"
-                value={form.email}
-                onChange={handleChange}
-              />
-            </label>
+              <div className="customers-form-field">
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="e.g. customer@example.com"
+                  />
+                </label>
+              </div>
 
-            <label className="customers-label">
-              <span>Address</span>
-              <textarea
-                name="address"
-                className="customers-textarea"
-                value={form.address}
-                onChange={handleChange}
-                required
-              />
-            </label>
+              <div className="customers-form-field">
+                <label>
+                  Full Address
+                  <textarea
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. No.453/C, New Town, Embilipitiya"
+                  />
+                </label>
+              </div>
+            </div>
 
             <div className="customers-actions">
               <button type="submit" className="btn-main">
-                {editingId ? "Update Customer" : "Save Customer"}
+                {editingId ? "Update" : "Save"}
               </button>
               {editingId && (
                 <button
@@ -365,23 +485,25 @@ function CustomersPage() {
               )}
             </div>
 
-            {message && (
-              <p className="customers-message">{message}</p>
-            )}
+            {message && <p className="customers-message">{message}</p>}
           </form>
         </div>
 
-        {/* RIGHT: LIST + SEARCH */}
-        <div className="customers-card">
+        {/* RIGHT: LIST */}
+        <div className="customers-list-card">
           <div className="customers-list-header">
-            <h3 className="customers-list-title">Customer List</h3>
-            <div className="customers-search">
-              <span style={{ fontSize: "12px", color: "#6b7280" }}>
-                Search
+            <div className="customers-list-title-wrap">
+              <h3 className="customers-list-title">Customer List</h3>
+              <span className="customers-count">
+                {filteredCustomers.length} of {customers.length}
               </span>
+            </div>
+
+            <div className="customers-search">
+              <span>🔍</span>
               <input
                 type="text"
-                placeholder="Name, phone, email..."
+                placeholder="Search name, town, phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -389,15 +511,14 @@ function CustomersPage() {
           </div>
 
           <div className="table-wrapper">
-            <table className="simple-table">
+            <table className="customers-table">
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Location</th>
-                  <th>Phone</th>
-                  <th>Email</th>
+                  <th>Phone / Email</th>
                   <th>Address</th>
-                  <th style={{ width: "120px" }}>Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -405,20 +526,39 @@ function CustomersPage() {
                   <tr key={c.id}>
                     <td>{c.customerName}</td>
                     <td>{c.location}</td>
-                    <td>{c.phone}</td>
-                    <td>{c.email}</td>
+                    <td>
+                      {c.phone}
+                      {c.email && (
+                        <>
+                          <br />
+                          <span className="customers-tags">{c.email}</span>
+                        </>
+                      )}
+                    </td>
                     <td>{c.address}</td>
-                    <td className="customers-table-actions">
-                      <button onClick={() => handleEdit(c)}>Edit</button>
-                      <button onClick={() => handleDelete(c.id)}>
-                        Delete
-                      </button>
+                    <td>
+                      <div className="customers-actions-cell">
+                        <button
+                          type="button"
+                          className="btn-small btn-edit"
+                          onClick={() => handleEdit(c)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-small btn-delete"
+                          onClick={() => handleDelete(c.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
                 {filteredCustomers.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center" }}>
+                    <td colSpan={5} style={{ textAlign: "center" }}>
                       No customers found.
                     </td>
                   </tr>
