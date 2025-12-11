@@ -40,7 +40,6 @@ function DashboardPage() {
         setTotalMachines(machines.length);
         setTotalServiceRecords(records.length);
 
-        // maps for display
         const customerMap = {};
         customers.forEach((c) => {
           customerMap[c.id] = c.customerName || "Unknown";
@@ -53,7 +52,7 @@ function DashboardPage() {
 
         const today = new Date(todayStr);
         const future = new Date(todayStr);
-        future.setDate(future.getDate() + 90); // next 90 days
+        future.setDate(future.getDate() + 90);
 
         const upcoming = [];
         const overdue = [];
@@ -83,14 +82,12 @@ function DashboardPage() {
         setUpcomingCount(upcoming.length);
         setOverdueCount(overdue.length);
 
-        // top 5 overdue sorted by most overdue
         const topOverdue = overdue
           .sort((a, b) => b.daysOverdue - a.daysOverdue)
           .slice(0, 5);
 
         setUrgentReminders(topOverdue);
 
-        // recent 5 service records (latest first) with names
         const recent = [...records]
           .sort((a, b) => {
             const da = a.serviceDate ? new Date(a.serviceDate) : 0;
@@ -119,6 +116,7 @@ function DashboardPage() {
     loadData();
   }, [todayStr]);
 
+  // 🔹 Quick action handlers
   const handleAddService = () => {
     navigate("/service-entry");
   };
@@ -137,13 +135,13 @@ function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      {/* Inline CSS specific to dashboard */}
       <style>{`
         .dashboard-page {
           min-height: calc(100vh - 60px);
-          font-family: Arial, sans-serif;
-          background: radial-gradient(circle at top left, #e0f2ff 0, #f5f5f5 45%, #f9fafb 100%);
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          background: linear-gradient(180deg, #e0f2fe 0%, #f9fafb 40%, #f3f4f6 100%);
           padding: 18px 26px 32px;
+          color: #0f172a;
         }
 
         .dash-shell {
@@ -169,22 +167,16 @@ function DashboardPage() {
           font-size: 26px;
           font-weight: 700;
           letter-spacing: 0.01em;
-          color: #0f172a;
-        }
-
-        .dash-subtitle {
-          margin: 0;
-          font-size: 12px;
-          color: #6b7280;
+          color: #0b2c5a;
         }
 
         .dash-badge-today {
           font-size: 12px;
           padding: 4px 10px;
           border-radius: 999px;
-          background: rgba(15,118,110,0.08);
-          color: #0f766e;
-          border: 1px solid rgba(45,212,191,0.3);
+          background: #ecfdf5;
+          color: #166534;
+          border: 1px solid #bbf7d0;
           display: inline-flex;
           align-items: center;
           gap: 6px;
@@ -197,7 +189,6 @@ function DashboardPage() {
           background: #22c55e;
         }
 
-        /* Stats row */
         .dash-stats-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -218,24 +209,30 @@ function DashboardPage() {
         }
 
         .stat-card {
-          position: relative;
-          overflow: hidden;
-          background: rgba(255,255,255,0.9);
-          backdrop-filter: blur(8px);
+          background: #ffffff;
           border-radius: 14px;
           padding: 12px 14px;
-          box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-          border: 1px solid rgba(148,163,184,0.22);
+          box-shadow: 0 6px 16px rgba(15,23,42,0.08);
           display: flex;
           flex-direction: column;
           gap: 6px;
-          transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+          border: 1px solid #e5e7eb;
         }
 
-        .stat-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.10);
-          border-color: rgba(59,130,246,0.4);
+        .stat-card-customers {
+          border-left: 4px solid #16a34a;
+        }
+
+        .stat-card-machines {
+          border-left: 4px solid #2563eb;
+        }
+
+        .stat-card-services {
+          border-left: 4px solid #7c3aed;
+        }
+
+        .stat-card-overdue {
+          border-left: 4px solid #dc2626;
         }
 
         .stat-header {
@@ -262,19 +259,19 @@ function DashboardPage() {
           font-size: 14px;
         }
 
-        .stat-icon.orange {
-          background: #fff7ed;
-          color: #ea580c;
-        }
-
         .stat-icon.green {
           background: #ecfdf5;
-          color: #15803d;
+          color: #16a34a;
+        }
+
+        .stat-icon.purple {
+          background: #f5f3ff;
+          color: #7c3aed;
         }
 
         .stat-icon.red {
           background: #fef2f2;
-          color: #b91c1c;
+          color: #dc2626;
         }
 
         .stat-value-row {
@@ -284,22 +281,12 @@ function DashboardPage() {
         }
 
         .stat-value {
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 700;
           margin: 0;
           color: #0f172a;
         }
 
-        .stat-value.accent {
-          color: #dc2626;
-        }
-
-        .stat-footer {
-          font-size: 11px;
-          color: #9ca3af;
-        }
-
-        /* Main layout */
         .dash-main-grid {
           display: grid;
           grid-template-columns: minmax(0, 2fr) minmax(0, 1.25fr);
@@ -315,9 +302,9 @@ function DashboardPage() {
         .card {
           background: #ffffff;
           border-radius: 14px;
-          box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
           padding: 14px 16px 16px;
-          border: 1px solid rgba(226,232,240,0.9);
+          border: 1px solid #e5e7eb;
         }
 
         .section-title-row {
@@ -332,51 +319,12 @@ function DashboardPage() {
           margin: 0;
           font-size: 15px;
           font-weight: 600;
-          color: #0f172a;
+          color: #0b2c5a;
         }
 
         .muted {
           font-size: 13px;
           color: #6b7280;
-        }
-
-        /* Buttons */
-        .btn {
-          border-radius: 999px;
-          padding: 6px 14px;
-          font-size: 13px;
-          font-weight: 500;
-          border: 1px solid transparent;
-          cursor: pointer;
-          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .btn:active {
-          transform: translateY(1px);
-        }
-
-        .btn-primary {
-          background: linear-gradient(135deg, #0f172a, #1d4ed8);
-          color: #ffffff;
-        }
-
-        .btn-primary:hover {
-          background: linear-gradient(135deg, #020617, #1d4ed8);
-        }
-
-        .btn-outline {
-          background: #ffffff;
-          color: #0f172a;
-          border-color: rgba(148,163,184,0.9);
-        }
-
-        .btn-outline:hover {
-          background: #f9fafb;
-          border-color: #1d4ed8;
-          color: #1d4ed8;
         }
 
         .quick-actions-card {
@@ -398,40 +346,45 @@ function DashboardPage() {
           justify-content: flex-end;
         }
 
-        /* Recent activity table */
         .recent-table {
           width: 100%;
           border-collapse: collapse;
           font-size: 13px;
+          border-radius: 10px;
+          overflow: hidden;
         }
 
         .recent-table th,
         .recent-table td {
-          border: 1px solid #e5e7eb;
           padding: 6px 8px;
           text-align: left;
         }
 
         .recent-table th {
-          background: #f3f4f6;
+          background: linear-gradient(90deg, #0b2c5a, #1d4ed8);
           font-size: 12px;
-          color: #4b5563;
+          color: #f9fafb;
         }
 
-        .recent-table tbody tr:nth-child(even) {
+        .recent-table td {
+          border-top: 1px solid #e5e7eb;
+          background: #ffffff;
+        }
+
+        .recent-table tbody tr:nth-child(even) td {
           background: #f9fafb;
         }
 
-        .recent-table tbody tr:hover {
+        .recent-table tbody tr:hover td {
           background: #e0f2fe;
         }
 
-        /* Urgent reminders panel */
         .urgent-card {
           display: flex;
           flex-direction: column;
           height: 100%;
-          background: radial-gradient(circle at top, #fef2f2 0, #ffffff 50%);
+          background: #fef2f2;
+          border: 1px solid #fecaca;
         }
 
         .urgent-header {
@@ -450,7 +403,7 @@ function DashboardPage() {
           align-items: center;
           justify-content: center;
           font-size: 18px;
-          box-shadow: 0 4px 10px rgba(248,113,113,0.45);
+          color: #b91c1c;
         }
 
         .urgent-title {
@@ -458,12 +411,6 @@ function DashboardPage() {
           font-size: 15px;
           font-weight: 600;
           color: #7f1d1d;
-        }
-
-        .urgent-subtitle {
-          margin: 0;
-          font-size: 12px;
-          color: #9f1239;
         }
 
         .urgent-list {
@@ -510,7 +457,6 @@ function DashboardPage() {
           font-size: 11px;
           font-weight: 600;
           white-space: nowrap;
-          box-shadow: 0 4px 10px rgba(185,28,28,0.45);
         }
 
         .urgent-footer-link {
@@ -544,7 +490,6 @@ function DashboardPage() {
         <div className="dash-header-top">
           <div className="dash-title-wrap">
             <h2 className="dash-title">Dashboard</h2>
-            <p className="dash-subtitle">Overview of services and reminders.</p>
           </div>
           <span className="dash-badge-today">
             <span className="dash-badge-dot" />
@@ -557,9 +502,9 @@ function DashboardPage() {
 
         {!loading && !error && (
           <>
-            {/* Top stats row */}
+            {/* Top stats */}
             <div className="dash-stats-grid">
-              <div className="stat-card">
+              <div className="stat-card stat-card-customers">
                 <div className="stat-header">
                   <p className="stat-title">Customers</p>
                   <div className="stat-icon green">👥</div>
@@ -567,10 +512,9 @@ function DashboardPage() {
                 <div className="stat-value-row">
                   <p className="stat-value">{totalCustomers}</p>
                 </div>
-                <p className="stat-footer">Registered clients.</p>
               </div>
 
-              <div className="stat-card">
+              <div className="stat-card stat-card-machines">
                 <div className="stat-header">
                   <p className="stat-title">Machines</p>
                   <div className="stat-icon">⚙️</div>
@@ -578,38 +522,36 @@ function DashboardPage() {
                 <div className="stat-value-row">
                   <p className="stat-value">{totalMachines}</p>
                 </div>
-                <p className="stat-footer">Scales in system.</p>
               </div>
 
-              <div className="stat-card">
+              <div className="stat-card stat-card-services">
                 <div className="stat-header">
-                  <p className="stat-title">Service Records</p>
-                  <div className="stat-icon orange">📘</div>
+                  <p className="stat-title">Services</p>
+                  <div className="stat-icon purple">📘</div>
                 </div>
                 <div className="stat-value-row">
                   <p className="stat-value">{totalServiceRecords}</p>
                 </div>
-                <p className="stat-footer">Jobs completed.</p>
               </div>
 
-              <div className="stat-card">
+              <div className="stat-card stat-card-overdue">
                 <div className="stat-header">
                   <p className="stat-title">Overdue</p>
                   <div className="stat-icon red">⏰</div>
                 </div>
                 <div className="stat-value-row">
-                  <p className="stat-value accent">{overdueCount}</p>
+                  <p className="stat-value">{overdueCount}</p>
                 </div>
-                <p className="stat-footer">
-                  {upcomingCount} upcoming (90 days).
+                <p className="stat-title">
+                  {upcomingCount} upcoming within 90 days
                 </p>
               </div>
             </div>
 
-            {/* Main content row */}
+            {/* Main row */}
             <div className="dash-main-grid">
-              {/* LEFT: Quick actions + recent activity */}
               <div>
+                {/* Quick Actions with Add New Service */}
                 <div className="card quick-actions-card">
                   <div className="quick-actions-header">
                     <h3 className="section-title">Quick Actions</h3>
@@ -639,7 +581,7 @@ function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Recent service activity */}
+                {/* Recent services */}
                 <div className="card">
                   <div className="section-title-row">
                     <h3 className="section-title">Recent Services</h3>
@@ -676,16 +618,13 @@ function DashboardPage() {
                 </div>
               </div>
 
-              {/* RIGHT: Urgent reminders */}
+              {/* Overdue panel */}
               <div>
                 <div className="card urgent-card">
                   <div className="urgent-header">
                     <div className="urgent-icon">⚠️</div>
                     <div>
                       <h3 className="urgent-title">Overdue Services</h3>
-                      <p className="urgent-subtitle">
-                        Next service date already passed.
-                      </p>
                     </div>
                   </div>
 
