@@ -13,11 +13,9 @@ function ServiceReportPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Editable Header Fields
   const [headerTel, setHeaderTel] = useState("011-xxxxxxx");
   const [headerEmail, setHeaderEmail] = useState("info@weighlanka.lk");
 
-  // Editable Footer Fields
   const [preparedBy, setPreparedBy] = useState("");
   const [preparedDate, setPreparedDate] = useState("");
   const [checkedBy, setCheckedBy] = useState("");
@@ -25,20 +23,17 @@ function ServiceReportPage() {
 
   const reportRef = useRef(null);
 
-  const fetchReport = async (reportDate) => {
+  const fetchReport = async (d) => {
     try {
       setLoading(true);
       setError("");
-      const response = await axios.get(
+      const res = await axios.get(
         `${API_BASE_URL}/service-records/report`,
-        {
-          params: { date: reportDate },
-        }
+        { params: { date: d } }
       );
-      setRows(response.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load report.");
+      setRows(res.data || []);
+    } catch {
+      setError("Failed to load report");
     } finally {
       setLoading(false);
     }
@@ -46,507 +41,241 @@ function ServiceReportPage() {
 
   useEffect(() => {
     fetchReport(date);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    fetchReport(date);
-  };
-
-  // ---------------- CSV DOWNLOAD ----------------
-  const handleDownloadCsv = () => {
-    if (!rows || rows.length === 0) {
-      alert("No data to export for this date.");
-      return;
-    }
-
-    const headers = [
-      "Date",
-      "No",
-      "Invoice No",
-      "Name and Address",
-      "Location",
-      "Tel",
-      "Model",
-      "Serial No",
-      "Capacity",
-      "Reg No",
-      "ID No",
-      "Serviced By",
-      "Prepared By",
-      "Prepared Date",
-      "Checked By",
-      "Signature",
-      "Header Tel",
-      "Header Email",
-    ];
-
-    const escapeCell = (value) => {
-      const str = value == null ? "" : String(value);
-      return `"${str.replace(/"/g, '""')}"`;
-    };
-
-    const csvRows = [];
-    csvRows.push(headers.map(escapeCell).join(","));
-
-    rows.forEach((row) => {
-      const dataRow = [
-        row.date,
-        row.no,
-        row.invoiceNo,
-        row.nameAndAddress,
-        row.location,
-        row.tel,
-        row.model,
-        row.serialNo,
-        row.cap,
-        row.regNo,
-        row.idNo,
-        row.servicedBy,
-        preparedBy,
-        preparedDate,
-        checkedBy,
-        signature,
-        headerTel,
-        headerEmail,
-      ];
-      csvRows.push(dataRow.map(escapeCell).join(","));
-    });
-
-    const blob = new Blob([csvRows.join("\r\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `daily-service-report-${date}.csv`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  };
-
-  // ---------------- PDF DOWNLOAD (SHARP) ----------------
   const handleDownloadPdf = async () => {
-    if (!rows || rows.length === 0) {
-      alert("No data to export for this date.");
-      return;
-    }
+    if (!reportRef.current) return;
 
-    const element = reportRef.current;
-    if (!element) return;
+    const canvas = await html2canvas(reportRef.current, {
+      scale: 3,
+      backgroundColor: "#ffffff",
+    });
 
-    try {
-      const canvas = await html2canvas(element, {
-        scale: 3,
-        backgroundColor: "#ffffff",
-      });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("l", "mm", "a4");
 
-      const imgData = canvas.toDataURL("image/png");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 8;
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      const pdf = new jsPDF("l", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 8;
-
-      const imgWidth = pageWidth - margin * 2;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
-      pdf.save(`daily-service-report-${date}.pdf`);
-    } catch (err) {
-      console.error("PDF generation error:", err);
-      alert("Failed to generate PDF.");
-    }
+    pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+    pdf.save(`service-report-${date}.pdf`);
   };
 
   return (
-    <div className="page-container">
+    <div className="sr-page">
       <style>{`
-        .page-container {
-          padding: 16px 24px 32px;
-          background: #f5f5f5;
-          min-height: calc(100vh - 60px);
-          font-family: Arial, sans-serif;
+        .sr-page {
+          padding: 28px;
+          background: linear-gradient(180deg,#f8fafc,#eef2f7);
+          min-height: 100vh;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont;
         }
 
-        .page-header {
-          margin-bottom: 14px;
+        .sr-header {
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:20px;
         }
 
-        .page-title {
-          margin: 0;
-          font-size: 22px;
-          font-weight: 700;
+        .sr-title {
+          font-size:26px;
+          font-weight:700;
+          color:#0f172a;
         }
 
-        .page-subtitle {
-          margin: 4px 0 0;
-          font-size: 13px;
-          color: #6b7280;
+        .sr-date-badge {
+          background:#e0f2fe;
+          color:#0369a1;
+          padding:6px 14px;
+          border-radius:999px;
+          font-size:13px;
+          font-weight:600;
         }
 
-        .card {
-          background: #ffffff;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(15,23,42,0.08);
-          padding: 14px 16px;
+        .sr-toolbar {
+          background:white;
+          border-radius:14px;
+          padding:14px 16px;
+          display:flex;
+          justify-content:space-between;
+          align-items:end;
+          box-shadow:0 10px 25px rgba(0,0,0,0.08);
+          margin-bottom:18px;
         }
 
-        .report-toolbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 12px;
-          margin-bottom: 12px;
+        .sr-input {
+          padding:7px 10px;
+          border-radius:8px;
+          border:1px solid #cbd5e1;
+          font-size:14px;
         }
 
-        .toolbar-left,
-        .toolbar-right {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          flex-wrap: wrap;
+        .sr-btn {
+          padding:8px 18px;
+          border-radius:999px;
+          border:none;
+          font-weight:600;
+          cursor:pointer;
         }
 
-        .field-label {
-          font-size: 13px;
-          color: #111827;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .sr-btn-primary {
+          background:linear-gradient(135deg,#2563eb,#4f46e5);
+          color:white;
+          box-shadow:0 10px 22px rgba(37,99,235,.45);
         }
 
-        .field-input {
-          padding: 6px 8px;
-          border-radius: 6px;
-          border: 1px solid #d1d5db;
-          font-size: 13px;
+        .sr-btn-secondary {
+          background:#16a34a;
+          color:white;
         }
 
-        .btn {
-          border-radius: 999px;
-          padding: 6px 14px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          border: 1px solid transparent;
+        .sr-report {
+          background:white;
+          border-radius:18px;
+          padding:22px;
+          box-shadow:0 18px 40px rgba(15,23,42,.15);
         }
 
-        .btn-primary {
-          background: #003366;
-          color: #ffffff;
-          border-color: #003366;
+        .sr-report-header {
+          display:flex;
+          align-items:center;
+          gap:16px;
+          margin-bottom:14px;
         }
 
-        .btn-primary:hover {
-          background: #002244;
+        .sr-logo {
+          width:70px;
         }
 
-        .btn-outline {
-          background: #ffffff;
-          color: #003366;
-          border-color: #cbd5e1;
+        .sr-report-title {
+          font-size:20px;
+          font-weight:700;
         }
 
-        .btn-outline:hover {
-          background: #f1f5f9;
+        .sr-table {
+          width:100%;
+          border-collapse:collapse;
+          font-size:13px;
+          margin-top:12px;
         }
 
-        .btn-secondary {
-          background: #16a34a;
-          color: #ffffff;
-          border-color: #15803d;
+        .sr-table th {
+          background:#0f172a;
+          color:white;
+          padding:8px;
+          font-size:12px;
         }
 
-        .btn-secondary:hover {
-          background: #15803d;
+        .sr-table td {
+          padding:7px;
+          border-bottom:1px solid #e5e7eb;
         }
 
-        .error {
-          color: #b91c1c;
-          font-size: 13px;
+        .sr-table tr:nth-child(even) {
+          background:#f8fafc;
         }
 
-        .muted {
-          font-size: 13px;
-          color: #6b7280;
+        .sr-sign {
+          margin-top:16px;
+          font-size:13px;
         }
 
-        .report-card {
-          margin-top: 8px;
-        }
-
-        .report-header {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 8px;
-        }
-
-        .report-logo {
-          width: 70px;
-          height: auto;
-        }
-
-        .report-title {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 700;
-        }
-
-        .report-subtitle {
-          margin: 2px 0;
-          font-size: 12px;
-          color: #4b5563;
-        }
-
-        .badge-date {
-          font-weight: 600;
-        }
-
-        .inline-input {
-          border: none;
-          border-bottom: 1px solid #d1d5db;
-          font-size: 12px;
-          padding: 2px 4px;
-          margin-left: 4px;
-        }
-
-        .inline-input:focus {
-          outline: none;
-          border-bottom-color: #2563eb;
-        }
-
-        .email-input {
-          min-width: 170px;
-        }
-
-        .report-divider {
-          margin: 8px 0 10px;
-          border: none;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .table-wrapper {
-          overflow-x: auto;
-        }
-
-        .report-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 11px;
-        }
-
-        .report-table th,
-        .report-table td {
-          border: 1px solid #e5e7eb;
-          padding: 4px 6px;
-          text-align: left;
-          vertical-align: top;
-        }
-
-        .report-table th {
-          background: #f3f4f6;
-          text-transform: uppercase;
-          font-size: 10px;
-        }
-
-        .signature-block {
-          margin-top: 10px;
-          font-size: 12px;
-          color: #111827;
-        }
-
-        .signature-input {
-          border: none;
-          border-bottom: 1px solid #d1d5db;
-          margin-left: 4px;
-          padding: 2px 4px;
-          font-size: 12px;
-        }
-
-        .signature-input.short {
-          max-width: 120px;
-        }
-
-        .signature-input:focus {
-          outline: none;
-          border-bottom-color: #2563eb;
+        .sr-sign input {
+          border:none;
+          border-bottom:1px solid #94a3b8;
+          margin-left:6px;
+          padding:2px 4px;
         }
       `}</style>
 
-      <div className="page-header">
-        <h2 className="page-title">Daily Service Report</h2>
-        <p className="page-subtitle">View and export service details for a date.</p>
+      <div className="sr-header">
+        <div className="sr-title">Daily Service Report</div>
+        <div className="sr-date-badge">{date}</div>
       </div>
 
-      {/* ---------------- Toolbar ---------------- */}
-      <form onSubmit={handleSubmit} className="report-toolbar card">
-        <div className="toolbar-left">
-          <label className="field-label">
-            Date
-            <input
-              type="date"
-              className="field-input"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </label>
+      <div className="sr-toolbar">
+        <div>
+          <input
+            type="date"
+            className="sr-input"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
 
-        <div className="toolbar-right">
-          <button className="btn btn-primary">Load Report</button>
-
+        <div>
+          <button
+            className="sr-btn sr-btn-primary"
+            onClick={() => fetchReport(date)}
+          >
+            Load
+          </button>
+          &nbsp;
           {rows.length > 0 && (
-            <>
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={handleDownloadCsv}
-              >
-                Download CSV
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleDownloadPdf}
-              >
-                Download PDF
-              </button>
-            </>
+            <button
+              className="sr-btn sr-btn-secondary"
+              onClick={handleDownloadPdf}
+            >
+              Export PDF
+            </button>
           )}
         </div>
-      </form>
+      </div>
 
-      {loading && <p>Loading...</p>}
-      {error && <p className="error">{error}</p>}
-      {!loading && rows.length === 0 && !error && (
-        <p className="muted">No records found for this date.</p>
-      )}
-
-      {/* ---------------- REPORT BLOCK (PDF CAPTURE AREA) ---------------- */}
       {rows.length > 0 && (
-        <div ref={reportRef} className="card report-card">
-          {/* Header */}
-          <div className="report-header">
-            <img
-              src="/weigh-lanka-logo.png"
-              className="report-logo"
-              alt="logo"
-            />
-
+        <div ref={reportRef} className="sr-report">
+          <div className="sr-report-header">
+            <img src="/weigh-lanka-logo.png" alt="logo" className="sr-logo" />
             <div>
-              <h2 className="report-title">WEIGH LANKA SERVICE REPORT</h2>
-
-              <p className="report-subtitle">
-                Daily Service Report | Date:&nbsp;
-                <span className="badge-date">{date}</span>
-              </p>
-
-              <p className="report-subtitle">
-                Tel:
-                <input
-                  value={headerTel}
-                  onChange={(e) => setHeaderTel(e.target.value)}
-                  className="inline-input"
-                />
-                &nbsp; | Email:
-                <input
-                  value={headerEmail}
-                  onChange={(e) => setHeaderEmail(e.target.value)}
-                  className="inline-input email-input"
-                />
-              </p>
+              <div className="sr-report-title">
+                WEIGH LANKA – SERVICE REPORT
+              </div>
+              <div style={{ fontSize: 13 }}>
+                Tel: {headerTel} | Email: {headerEmail}
+              </div>
             </div>
           </div>
 
-          <hr className="report-divider" />
-
-          {/* Table */}
-          <div className="table-wrapper">
-            <table className="report-table pretty-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>No</th>
-                  <th>Inv No</th>
-                  <th>Name & Address</th>
-                  <th>Location</th>
-                  <th>Tel</th>
-                  <th>Model</th>
-                  <th>Serial No</th>
-                  <th>Cap</th>
-                  <th>Reg No</th>
-                  <th>ID No</th>
-                  <th>Serviced By</th>
+          <table className="sr-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>No</th>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Location</th>
+                <th>Model</th>
+                <th>Serial</th>
+                <th>Cap</th>
+                <th>Serviced By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td>{r.date}</td>
+                  <td>{r.no}</td>
+                  <td>{r.invoiceNo}</td>
+                  <td>{r.nameAndAddress}</td>
+                  <td>{r.location}</td>
+                  <td>{r.model}</td>
+                  <td>{r.serialNo}</td>
+                  <td>{r.cap}</td>
+                  <td>{r.servicedBy}</td>
                 </tr>
-              </thead>
+              ))}
+            </tbody>
+          </table>
 
-              <tbody>
-                {rows.map((row, idx) => (
-                  <tr key={idx}>
-                    <td>{row.date}</td>
-                    <td>{row.no}</td>
-                    <td>{row.invoiceNo}</td>
-                    <td>{row.nameAndAddress}</td>
-                    <td>{row.location}</td>
-                    <td>{row.tel}</td>
-                    <td>{row.model}</td>
-                    <td>{row.serialNo}</td>
-                    <td>{row.cap}</td>
-                    <td>{row.regNo}</td>
-                    <td>{row.idNo}</td>
-                    <td>{row.servicedBy}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ---------------- Signature Block ---------------- */}
-          <div className="signature-block">
-            <p>
-              Prepared by:
-              <input
-                type="text"
-                value={preparedBy}
-                onChange={(e) => setPreparedBy(e.target.value)}
-                className="signature-input"
-                placeholder="Enter name"
-              />
-              &nbsp;&nbsp; Date:
-              <input
-                type="date"
-                value={preparedDate}
-                onChange={(e) => setPreparedDate(e.target.value)}
-                className="signature-input short"
-              />
-            </p>
-
-            <p>
-              Checked by:
-              <input
-                type="text"
-                value={checkedBy}
-                onChange={(e) => setCheckedBy(e.target.value)}
-                className="signature-input"
-                placeholder="Enter name"
-              />
-              &nbsp;&nbsp; Signature:
-              <input
-                type="text"
-                value={signature}
-                onChange={(e) => setSignature(e.target.value)}
-                className="signature-input short"
-                placeholder="Sign"
-              />
-            </p>
+          <div className="sr-sign">
+            Prepared by <input value={preparedBy} onChange={e=>setPreparedBy(e.target.value)} />
+            &nbsp; Date <input type="date" value={preparedDate} onChange={e=>setPreparedDate(e.target.value)} />
+            <br/><br/>
+            Checked by <input value={checkedBy} onChange={e=>setCheckedBy(e.target.value)} />
+            &nbsp; Signature <input value={signature} onChange={e=>setSignature(e.target.value)} />
           </div>
         </div>
       )}
