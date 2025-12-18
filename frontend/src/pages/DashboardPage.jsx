@@ -1,6 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import './DashboardPage.css';
+
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
 
 const API_BASE_URL = "http://localhost:9090/api";
 
@@ -70,6 +84,7 @@ function DashboardPage() {
             overdue.push({
               ...r,
               customerName: customerMap[r.customerId],
+              machineLabel: machineMap[r.machineId],
               daysOverdue: Math.abs(diff),
             });
           } else if (diff <= 90) {
@@ -116,206 +131,68 @@ function DashboardPage() {
     r.customerName?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const monthlyData = useMemo(() => {
+    const counts = Array(6).fill(0);
+    const labels = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(d.toLocaleString(undefined, { month: "short" }));
+    }
+
+    recentRecords.forEach((r) => {
+      if (!r.serviceDate) return;
+      const d = new Date(r.serviceDate);
+      const monthsDiff = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+      if (monthsDiff >= 0 && monthsDiff < 6) {
+        counts[5 - monthsDiff] += 1;
+      }
+    });
+
+    return { labels, counts };
+  }, [recentRecords]);
+
+  const chartData = useMemo(() => ({
+    labels: monthlyData.labels,
+    datasets: [
+      {
+        data: monthlyData.counts,
+        backgroundColor: 'rgba(74,112,169,0.95)',
+        borderRadius: 6,
+        barThickness: 18,
+      },
+    ],
+  }), [monthlyData]);
+
+  const chartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#cfe2f6' } },
+      y: { beginAtZero: true, grid: { display: false }, ticks: { stepSize: 1, color: '#cfe2f6' } },
+    },
+  }), [monthlyData]);
+
+
   return (
-    <div className="dashboard-page">
-      <style>{`
-        .dashboard-page {
-          padding: 24px;
-          min-height: calc(100vh - 60px);
-          background: linear-gradient(180deg,#eef6ff,#e2e8f0);
-          font-family: system-ui;
-          color:#0f172a;
-        }
 
-        .dash-shell { max-width:1200px; margin:auto; }
 
-        .dash-header {
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          margin-bottom:18px;
-        }
-
-        .dash-title { font-size:28px; font-weight:700; color:#071235; }
-
-        .date-badge {
-          background:#dbeafe;
-          color:#1e3a8a;
-          padding:6px 14px;
-          border-radius:999px;
-          font-size:13px;
-          font-weight:600;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-          display:flex;
-          gap:10px;
-          margin-bottom:20px;
-          flex-wrap:wrap;
-        }
-
-        .btn {
-          border-radius:999px;
-          padding:7px 16px;
-          font-size:13px;
-          font-weight:600;
-          cursor:pointer;
-          border:none;
-        }
-
-        .btn-primary {
-          background:linear-gradient(135deg,#1e40af,#2563eb);
-          color:white;
-          box-shadow:0 10px 24px rgba(14,42,100,.45);
-          transition: transform .12s ease, filter .12s ease;
-        }
-
-        .btn-soft {
-          background:#e0f2fe;
-          color:#0369a1;
-          border:1px solid #bae6fd;
-        }
-
-        .btn-primary:hover {
-          filter:brightness(.95);
-          transform: translateY(-1px);
-        }
-
-        /* Stats */
-        .stats-grid {
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-          gap:16px;
-          margin-bottom:22px;
-        }
-
-        .stat-card {
-          background:#f8fafc;
-          border-radius:14px;
-          padding:14px 16px;
-          box-shadow:0 6px 18px rgba(15,23,42,.10);
-          border-left:4px solid #1e40af;
-        }
-
-        .stat-title { font-size:13px; color:#475569; }
-        .stat-value { font-size:26px; font-weight:700; }
-
-        /* Layout */
-        .grid-main {
-          display:grid;
-          grid-template-columns:2fr 1fr;
-          gap:18px;
-        }
-
-        @media(max-width:900px){
-          .grid-main{grid-template-columns:1fr;}
-        }
-
-        .card {
-          background:#f9fafb;
-          border-radius:14px;
-          padding:16px;
-          box-shadow:0 8px 24px rgba(15,23,42,.10);
-        }
-
-        /* Search */
-        .search-box {
-          margin-bottom:10px;
-        }
-
-        .search-box input {
-          width:100%;
-          padding:8px 12px;
-          border-radius:999px;
-          border:1px solid #cbd5e1;
-          font-size:13px;
-          background: white;
-          outline: none;
-        }
-
-        .search-box input:focus {
-          box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-          border-color: #93c5fd;
-        }
-
-        /* Table */
-        table {
-          width:100%;
-          border-collapse:collapse;
-          font-size:13px;
-        }
-
-        th {
-          background:#2563eb;
-          color:white;
-          padding:8px;
-        }
-
-        td {
-          padding:8px;
-          border-top:1px solid #e5e7eb;
-        }
-
-        tr:nth-child(even) td { background:#f1f5f9; }
-
-        /* Overdue */
-        .urgent {
-          background:#fff7ed;
-          border:1px solid #fed7aa;
-        }
-
-        .urgent-item {
-          display:flex;
-          justify-content:space-between;
-          padding:8px 0;
-          border-bottom:1px solid #fed7aa;
-          font-size:13px;
-        }
-
-        .urgent-badge {
-          background:#c2410c;
-          color:white;
-          padding:4px 10px;
-          border-radius:999px;
-          font-size:11px;
-        }
-
-        .view-link {
-          margin-top:10px;
-          text-align:right;
-        }
-
-        .view-link button {
-          background:none;
-          border:none;
-          color:#2563eb;
-          cursor:pointer;
-          font-size:13px;
-          font-weight:600;
-        }
-
-        /* Chart */
-        .chart {
-          height:120px;
-          display:flex;
-          align-items:flex-end;
-          gap:10px;
-          margin-top:10px;
-        }
-
-        .bar {
-          flex:1;
-          background:#60a5fa;
-          border-radius:6px 6px 0 0;
-        }
-      `}</style>
-
-      <div className="dash-shell">
+      <div className="dashboard-page">
+        <div className="dash-shell">
         <div className="dash-header">
-          <h2 className="dash-title">Dashboard</h2>
-          <span className="date-badge">{todayStr}</span>
+          <div>
+            <h2 className="dash-title">Welcome back — Dashboard</h2>
+            
+          </div>
+
+          <div className="dash-header-right">
+            <div className="date-badge">{todayStr}</div>
+          </div>
         </div>
+
+        {/* Decorative blob */}
+        <div className="decor-blob" aria-hidden></div>
 
         {/* Quick Actions */}
         <div className="quick-actions">
@@ -328,19 +205,86 @@ function DashboardPage() {
           <button className="btn btn-soft" onClick={() => navigate("/report")}>
             📄 Daily Report
           </button>
-        </div>
+
+          <div className="quick-actions-meta">
+            <div className="pill">Services: <strong>{totalServiceRecords}</strong></div>
+            <div className="pill">Overdue: <strong className="overdue-count">{overdueCount}</strong></div>
+          </div>        </div>
 
         <div className="stats-grid">
-          <div className="stat-card"><div className="stat-title">Customers</div><div className="stat-value">{totalCustomers}</div></div>
-          <div className="stat-card"><div className="stat-title">Machines</div><div className="stat-value">{totalMachines}</div></div>
-          <div className="stat-card"><div className="stat-title">Services</div><div className="stat-value">{totalServiceRecords}</div></div>
-          <div className="stat-card"><div className="stat-title">Upcoming</div><div className="stat-value">{upcomingCount}</div></div>
-          <div className="stat-card"><div className="stat-title">Overdue</div><div className="stat-value">{overdueCount}</div></div>
+          <div className="stat-card stat-blue">
+            <div className="stat-top">
+              <div className="stat-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden>
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                  <path d="M6 20c0-3.31 2.69-6 6-6s6 2.69 6 6v1H6v-1z" />
+                </svg>
+              </div>
+              <div className="stat-title">Customers</div>
+            </div>
+            <div className="stat-value">{totalCustomers}</div>
+          </div>
+
+          <div className="stat-card stat-teal">
+            <div className="stat-top">
+              <div className="stat-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden>
+                  <path d="M21 6.5l-2.5-2.5a1 1 0 00-1.4 0l-1.2 1.2 3.9 3.9 1.2-1.2a1 1 0 000-1.4z" />
+                  <path d="M3 17.5l3.5 3.5 7.2-7.2-3.5-3.5L3 17.5z" />
+                </svg>
+              </div>
+              <div className="stat-title">Machines</div>
+            </div>
+            <div className="stat-value">{totalMachines}</div>
+          </div>
+
+          <div className="stat-card stat-purple">
+            <div className="stat-top">
+              <div className="stat-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden>
+                  <path d="M3 11l9-9 9 9-9 9L3 11z" />
+                </svg>
+              </div>
+              <div className="stat-title">Services</div>
+            </div>
+            <div className="stat-value">{totalServiceRecords}</div>
+          </div>
+
+          <div className="stat-card stat-yellow">
+            <div className="stat-top">
+              <div className="stat-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden>
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <path d="M8 2v4M16 2v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="stat-title">Upcoming</div>
+            </div>
+            <div className="stat-value">{upcomingCount}</div>
+          </div>
+
+          <div className="stat-card stat-red">
+            <div className="stat-top">
+              <div className="stat-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden>
+                  <circle cx="12" cy="12" r="8" />
+                  <path d="M12 8v4l3 2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="stat-title">Overdue</div>
+            </div>
+            <div className="stat-value">{overdueCount}</div>
+          </div>
         </div>
 
         <div className="grid-main">
-          {/* Recent */}
+          {/* Left: recent and chart */}
           <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Recent Services</h3>
+              <div className="card-meta">{filteredRecent.length} shown</div>
+            </div>
+
             <div className="search-box">
               <input
                 placeholder="Search customer..."
@@ -349,49 +293,79 @@ function DashboardPage() {
               />
             </div>
 
-            {loading && <div style={{padding:'8px 0', color:'#0f172a'}}>Loading...</div>}
-            {error && <div style={{padding:'8px 0', color:'#b91c1c', fontWeight:600}}>{error}</div>}
+            {loading && <div className="loading">Loading...</div>}
+            {error && <div className="error-message">{error}</div>}
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>Machine</th>
-                  <th>Technician</th>
-                  <th>Invoice</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRecent.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.serviceDate}</td>
-                    <td>{r.customerName}</td>
-                    <td>{r.machineLabel}</td>
-                    <td>{r.technicianName}</td>
-                    <td>{r.invoiceNo}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="recent-grid">
+              <div>
+                <table className="modern-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Customer</th>
+                      <th>Machine</th>
+                      <th>Tech</th>
+                      <th>Inv</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRecent.map((r) => (
+                      <tr key={r.id}>
+                        <td>{r.serviceDate}</td>
+                        <td className="cell-strong">{r.customerName}</td>
+                        <td>{r.machineLabel}</td>
+                        <td>{r.technicianName}</td>
+                        <td>{r.invoiceNo}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Simple Chart */}
             
+              
+            </div>
+
           </div>
 
-          {/* Overdue */}
-          <div className="card urgent">
-            <h3>Overdue Services</h3>
-            {urgentReminders.map((r) => (
-              <div key={r.id} className="urgent-item">
-                <span>{r.customerName}</span>
-                <span className="urgent-badge">{r.daysOverdue} days</span>
+          {/* Right: Overdue & Activity */}
+          <div className="right-column">
+            <div className="card urgent">
+              <h3 className="card-title">Overdue Services</h3>
+              {urgentReminders.length === 0 && <div className="card-empty">No overdue services 🎉</div>}
+              {urgentReminders.map((r) => (
+                <div key={r.id} className="urgent-item">
+                  <div className="urgent-main">
+                    <div className="urgent-title">{r.customerName}</div>
+                    <div className="urgent-sub">{r.machineLabel || 'Machine'}</div>
+                  </div>
+                  <div className="urgent-meta">
+                    <div className="urgent-badge">{r.daysOverdue}d</div>
+                    <div className="urgent-invoice">{r.invoiceNo || ''}</div>
+                  </div>
+                </div>
+              ))}
+              <div className="view-link">
+                <button onClick={() => navigate("/reminders") }>
+                  View all reminders →
+                </button>
               </div>
-            ))}
-            <div className="view-link">
-              <button onClick={() => navigate("/reminders")}>
-                View all reminders →
-              </button>
+            </div>
+
+            <div className="card">
+              <h3 className="card-title">Recent Activity</h3>
+              <div className="activity-list">
+                {recentRecords.slice(0,6).map((r) => (
+                  <div key={r.id} className="activity-row">
+                    <div className="avatar">{(r.customerName||'')[0]||'U'}</div>
+                    <div className="activity-main">
+                      <div className="activity-title">{r.customerName}</div>
+                      <div className="activity-sub">{r.serviceDate} • {r.technicianName}</div>
+                    </div>
+                    <div className="activity-meta">{r.invoiceNo}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

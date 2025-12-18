@@ -135,33 +135,65 @@ function ServiceEntryPage() {
     <div className="se-page">
       {/* Page-specific styling */}
       <style>{`
+        :root{
+          --bg-1: #f3f6ff;
+          --bg-2: #ffffff;
+          --accent: #4f46e5;
+          --muted: #6b7280;
+          --card: rgba(255,255,255,0.86);
+        }
+
         .se-page {
-          padding: 16px 24px 32px;
-          background: #f5f5f5;
+          padding: 28px 20px;
+          background: radial-gradient(800px 300px at 10% 0%, rgba(79,70,229,0.06), transparent 12%), linear-gradient(180deg, var(--bg-1), var(--bg-2));
           min-height: calc(100vh - 60px);
-          font-family: Arial, sans-serif;
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .decor-blob{
+          position: absolute;
+          right: -80px;
+          top: -80px;
+          width: 360px;
+          height: 360px;
+          background: radial-gradient(circle at 30% 30%, rgba(79,70,229,0.16), transparent 28%), radial-gradient(circle at 70% 70%, rgba(59,130,246,0.06), transparent 30%);
+          filter: blur(36px);
+          transform: rotate(8deg);
+          z-index: 1;
+          pointer-events: none;
         }
 
         .se-header {
-          margin-bottom: 14px;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          margin-bottom: 18px;
+          position:relative;
+          z-index:2;
         }
 
         .se-title {
           margin: 0;
           font-size: 22px;
           font-weight: 700;
+          color: #0f172a;
         }
 
         .se-subtitle {
           margin: 4px 0 0;
           font-size: 13px;
-          color: #6b7280;
+          color: var(--muted);
         }
 
         .se-layout {
           display: grid;
           grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr);
-          gap: 16px;
+          gap: 18px;
+          position:relative;
+          z-index:2;
         }
 
         @media (max-width: 950px) {
@@ -171,29 +203,31 @@ function ServiceEntryPage() {
         }
 
         .se-card {
-          background: #ffffff;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(15,23,42,0.08);
-          padding: 14px 16px;
+          background: var(--card);
+          border-radius: 12px;
+          box-shadow: 0 20px 60px rgba(15,23,42,0.06);
+          padding: 18px;
+          border: 1px solid rgba(15,23,42,0.04);
         }
 
         .se-section-title {
           margin: 0;
           font-size: 16px;
-          font-weight: 600;
+          font-weight: 700;
+          color: #0f172a;
         }
 
         .se-muted {
           font-size: 13px;
-          color: #6b7280;
-          margin-top: 2px;
+          color: var(--muted);
+          margin-top: 6px;
         }
 
         .se-form-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px 14px;
-          margin-top: 10px;
+          gap: 12px 14px;
+          margin-top: 12px;
         }
 
         @media (max-width: 700px) {
@@ -205,22 +239,35 @@ function ServiceEntryPage() {
         .se-form-field {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 6px;
           font-size: 13px;
           color: #111827;
         }
 
+        .se-form-field label{ font-size:13px; font-weight:600; color:#0f172a; }
+
         .se-form-field input,
         .se-form-field select,
         .se-form-field textarea {
-          padding: 6px 8px;
-          border-radius: 6px;
-          border: 1px solid #d1d5db;
-          font-size: 13px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(15,23,42,0.06);
+          background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));
+          font-size: 14px;
+          outline: none;
+          transition: box-shadow .12s ease, border-color .12s ease, transform .06s ease;
+        }
+
+        .se-form-field input:focus,
+        .se-form-field select:focus,
+        .se-form-field textarea:focus{
+          border-color: var(--accent);
+          box-shadow: 0 6px 20px rgba(79,70,229,0.08);
+          transform: translateY(-1px);
         }
 
         .se-form-field textarea {
-          min-height: 60px;
+          min-height: 80px;
           resize: vertical;
         }
 
@@ -229,25 +276,27 @@ function ServiceEntryPage() {
         }
 
         .se-actions {
-          margin-top: 10px;
+          margin-top: 12px;
           display: flex;
-          gap: 8px;
+          gap: 10px;
           flex-wrap: wrap;
         }
 
         .se-btn-main {
           border: none;
-          border-radius: 6px;
-          padding: 6px 14px;
-          font-size: 13px;
-          font-weight: 600;
+          border-radius: 10px;
+          padding: 10px 18px;
+          font-size: 14px;
+          font-weight: 700;
           cursor: pointer;
-          background: #003366;
+          background: linear-gradient(90deg, var(--accent), #2563eb);
           color: #ffffff;
+          box-shadow: 0 8px 30px rgba(37,99,235,0.12);
         }
 
         .se-btn-main:hover {
-          background: #002244;
+          filter: brightness(.98);
+          transform: translateY(-1px);
         }
 
         .se-info {
@@ -260,42 +309,55 @@ function ServiceEntryPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
         }
 
         .se-table-caption {
           font-size: 12px;
-          color: #6b7280;
+          color: var(--muted);
         }
+
+        .table-wrapper{ overflow:auto; border-radius:8px; }
 
         .se-table {
           width: 100%;
-          border-collapse: collapse;
+          border-collapse: separate;
+          border-spacing: 0;
           font-size: 13px;
+          min-width: 900px;
+          background: transparent;
         }
 
         .se-table th,
         .se-table td {
-          border: 1px solid #e5e7eb;
-          padding: 6px 8px;
+          padding: 10px 12px;
           text-align: left;
-          vertical-align: top;
+          vertical-align: middle;
         }
 
-        .se-table th {
-          background: #f3f4f6;
-          font-size: 12px;
+        .se-table thead th{
+          background: rgba(247,250,255,0.8);
+          position: sticky;
+          top:0;
+          z-index:3;
+          font-size:12px;
+          text-transform:uppercase;
+          color:var(--muted);
+          border-bottom:1px solid rgba(15,23,42,0.04);
         }
 
-        .se-table tbody tr:nth-child(even) {
-          background: #f9fafb;
-        }
+        .se-table tbody tr{ background: #fff; border-bottom: 1px solid rgba(15,23,42,0.03); }
+        .se-table tbody tr:hover{ background: rgba(37,99,235,0.02); }
 
         .se-footer-note {
           margin-top: 12px;
           font-size: 13px;
-          color: #4b5563;
+          color: var(--muted);
+          position:relative;
+          z-index:2;
         }
+
+        .empty-row{ text-align:center; padding:18px; color:var(--muted); }
       `}</style>
 
       <div className="se-header">
@@ -304,6 +366,8 @@ function ServiceEntryPage() {
           Record services for the selected date. Next service auto-fills +1 year.
         </p>
       </div>
+
+      <div className="decor-blob" aria-hidden="true" />
 
       <div className="se-layout">
         {/* LEFT: FORM */}

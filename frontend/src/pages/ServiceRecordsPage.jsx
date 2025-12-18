@@ -57,6 +57,46 @@ function ServiceRecordsPage() {
     loadAll();
   }, []);
 
+  // UI helpers: search query and CSV export
+  const [query, setQuery] = useState("");
+
+  function csvFromRecords(rows) {
+    const headers = ["Service Date","Next Service","Customer","Machine","Invoice","Visit","Technician","Cost","Remarks"];
+    const lines = [headers.join(",")];
+    (rows || []).forEach((r) => {
+      const cust = customers.find((c)=>c.id===r.customerId);
+      const mach = machines.find((m)=>m.id===r.machineId);
+      const safe = (v) => `"${String(v||"").replace(/"/g,'""')}"`;
+      lines.push([
+        r.serviceDate,
+        r.nextServiceDate,
+        safe(cust?cust.customerName:r.customerId),
+        safe(mach?`${mach.model} / ${mach.serialNumber}`:r.machineId),
+        safe(r.invoiceNo),
+        r.visitNo,
+        safe(r.technicianName),
+        r.serviceCost,
+        safe(r.remarks),
+      ].join(","));
+    });
+    return lines.join("\n");
+  }
+
+  const handleExportCsv = () => {
+    try {
+      const csv = csvFromRecords(filteredRecords);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `service-records-${todayStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export CSV failed", err);
+    }
+  }; 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -202,243 +242,80 @@ function ServiceRecordsPage() {
       return false;
     }
 
+    // search query: invoice, customer name, technician, location
+    const q = (query || "").trim().toLowerCase();
+    if (q) {
+      const cust = customers.find((c) => c.id === r.customerId);
+      const mach = machines.find((m) => m.id === r.machineId);
+      const fields = [
+        String(r.invoiceNo || ""),
+        String(cust ? cust.customerName : ""),
+        String(r.technicianName || ""),
+        String(cust ? cust.location : ""),
+      ].join(" ").toLowerCase();
+      if (!fields.includes(q)) return false;
+    }
+
     return true;
-  });
+  }); 
 
   return (
     <div className="service-records-page">
-      {/* Inline CSS just for this page */}
+      {/* Page-specific styling (modern) */}
       <style>{`
-        .service-records-page {
-          padding: 16px 24px 32px;
-          background: #f5f5f5;
-          min-height: calc(100vh - 60px);
-          font-family: Arial, sans-serif;
-        }
+        :root{ --bg-1:#c7d2fe; --bg-2:#f8fafc; --muted:#374151; --accent:#1e40af; }
 
-        .sr-header {
-          margin-bottom: 14px;
-        }
+        .service-records-page{ padding:28px 20px; background: radial-gradient(900px 300px at 6% 6%, rgba(37,99,235,0.32), transparent 18%), linear-gradient(180deg,var(--bg-1),var(--bg-2)); min-height:100vh; font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto; }
 
-        .sr-title {
-          margin: 0;
-          font-size: 22px;
-          font-weight: 700;
-        }
+        .sr-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+        .sr-title{ margin:0; font-size:22px; font-weight:800; color:#0b1325; }
+        .sr-subtitle{ margin:0; color:var(--muted); }
 
-        .sr-subtitle {
-          margin: 4px 0 0;
-          font-size: 13px;
-          color: #6b7280;
-        }
+        .sr-layout{ display:grid; grid-template-columns: minmax(0,1.25fr) minmax(0,1.85fr); gap:18px; }
+        @media(max-width:980px){ .sr-layout{ grid-template-columns:1fr; } }
 
-        .sr-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr);
-          gap: 16px;
-        }
+        .sr-card{ background: rgba(255,255,255,0.96); border-radius:12px; padding:16px; box-shadow:0 28px 80px rgba(15,23,42,0.12); border:1px solid rgba(15,23,42,0.06); }
+        .sr-section-title{ margin:0 0 6px; font-size:16px; font-weight:700; color:#0b1325; }
+        .sr-muted{ color:var(--muted); font-size:13px; margin-bottom:6px; }
 
-        @media (max-width: 950px) {
-          .sr-layout {
-            grid-template-columns: 1fr;
-          }
-        }
+        .sr-filter-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-top:10px; }
+        .sr-filter-field label{ font-size:13px; color:#0b1325; display:flex; flex-direction:column; gap:6px; }
+        .sr-filter-field select, .sr-filter-field input{ padding:8px 10px; border-radius:10px; border:1px solid rgba(15,23,42,0.08); background:linear-gradient(180deg,rgba(255,255,255,0.7), rgba(250,250,250,0.7)); }
 
-        .sr-card {
-          background: #ffffff;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(15,23,42,0.08);
-          padding: 14px 16px;
-        }
+        .sr-form-grid{ display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+        @media(max-width:700px){ .sr-form-grid{ grid-template-columns:1fr; } }
+        .sr-form-field label{ font-size:13px; color:#0b1325; display:flex; gap:6px; flex-direction:column; }
+        .sr-form-field input, .sr-form-field select, .sr-form-field textarea{ padding:10px 12px; border-radius:10px; border:1px solid rgba(15,23,42,0.08); background:linear-gradient(180deg,rgba(255,255,255,0.7), rgba(250,250,250,0.7)); }
+        .sr-form-field textarea{ min-height:90px; }
 
-        .sr-section-title {
-          margin: 0 0 6px;
-          font-size: 16px;
-          font-weight: 600;
-        }
+        .sr-actions-row{ margin-top:12px; display:flex; gap:10px; align-items:center; }
+        .btn-main{ border-radius:10px; padding:10px 14px; background:linear-gradient(90deg,var(--accent),#2563eb); color:#fff; border:none; font-weight:800; box-shadow:0 14px 36px rgba(30,64,175,0.14); }
+        .btn-secondary{ border-radius:10px; padding:8px 12px; background:transparent; border:1px solid rgba(15,23,42,0.08); color:var(--muted); }
 
-        .sr-muted {
-          font-size: 13px;
-          color: #6b7280;
-        }
+        /* table area */
+        .sr-table-card{ display:flex; flex-direction:column; }
+        .sr-table-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+        .sr-table-caption{ color:var(--muted); }
 
-        .sr-filter-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 8px 10px;
-          margin-top: 8px;
-        }
+        .sr-table-controls{ display:flex; gap:10px; align-items:center; }
+        .sr-search{ display:flex; align-items:center; gap:8px; background:#eef2ff; padding:8px 10px; border-radius:10px; min-width:220px; }
+        .sr-search input{ border:0; background:transparent; outline:none; font-size:14px; }
 
-        .sr-filter-field label {
-          font-size: 13px;
-          color: #111827;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
+        .sr-table{ width:100%; border-collapse:separate; border-spacing:0; font-size:13px; min-width:900px; }
+        .sr-table thead th{ background: rgba(15,23,42,0.95); color:#fff; padding:12px; font-size:12px; position:sticky; top:0; z-index:3; text-transform:uppercase; }
+        .sr-table td{ padding:12px; border-bottom:1px solid rgba(15,23,42,0.06); }
+        .sr-table tbody tr:nth-child(even){ background: rgba(15,23,42,0.03); }
+        .sr-table tbody tr:hover{ background: rgba(79,70,229,0.04); }
 
-        .sr-filter-field select,
-        .sr-filter-field input {
-          padding: 6px 8px;
-          border-radius: 6px;
-          border: 1px solid #d1d5db;
-          font-size: 13px;
-        }
+        .sr-table-actions{ display:flex; gap:8px; }
+        .btn-edit{ background:#eef2ff; color:#3730a3; border-radius:8px; padding:6px 10px; }
+        .btn-delete{ background:#fff1f2; color:#8b1d1d; border-radius:8px; padding:6px 10px; }
 
-        .sr-form-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px 14px;
-          margin-top: 10px;
-        }
+        .empty{ text-align:center; padding:30px; color:var(--muted); }
 
-        @media (max-width: 700px) {
-          .sr-form-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .sr-form-field label {
-          font-size: 13px;
-          color: #111827;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .sr-form-field input,
-        .sr-form-field select,
-        .sr-form-field textarea {
-          padding: 6px 8px;
-          border-radius: 6px;
-          border: 1px solid #d1d5db;
-          font-size: 13px;
-        }
-
-        .sr-form-field textarea {
-          min-height: 70px;
-          resize: vertical;
-        }
-
-        .sr-full-row {
-          grid-column: 1 / -1;
-        }
-
-        .sr-actions-row {
-          margin-top: 10px;
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .btn-main {
-          border: none;
-          border-radius: 6px;
-          padding: 6px 14px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          background: #003366;
-          color: #ffffff;
-        }
-
-        .btn-main:hover {
-          background: #002244;
-        }
-
-        .btn-secondary {
-          border-radius: 6px;
-          padding: 6px 14px;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          border: 1px solid #d1d5db;
-          background: #ffffff;
-          color: #374151;
-        }
-
-        .btn-secondary:hover {
-          background: #f3f4f6;
-        }
-
-        .btn-small {
-          border-radius: 999px;
-          padding: 4px 10px;
-          font-size: 11px;
-          border: none;
-          cursor: pointer;
-        }
-
-        .btn-edit {
-          background: #e0f2fe;
-          color: #0369a1;
-        }
-
-        .btn-edit:hover {
-          background: #bae6fd;
-        }
-
-        .btn-delete {
-          background: #fee2e2;
-          color: #b91c1c;
-        }
-
-        .btn-delete:hover {
-          background: #fecaca;
-        }
-
-        .sr-message {
-          margin-top: 8px;
-          font-size: 13px;
-          color: green;
-        }
-
-        .sr-table-card {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .sr-table-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 6px;
-        }
-
-        .sr-table-caption {
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        .sr-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-        }
-
-        .sr-table th,
-        .sr-table td {
-          border: 1px solid #e5e7eb;
-          padding: 6px 8px;
-          text-align: left;
-          vertical-align: top;
-        }
-
-        .sr-table th {
-          background: #f3f4f6;
-          font-size: 12px;
-        }
-
-        .sr-table tbody tr:nth-child(even) {
-          background: #f9fafb;
-        }
-
-        .sr-table-actions {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-      `}</style>
+        @media(max-width:900px){ .sr-table{ min-width:700px; } }
+        @media print{ .sr-card{ box-shadow:none; border:none; } }
+      `}</style> 
 
       <div className="sr-header">
         <h2 className="sr-title">Service Records</h2>
@@ -695,10 +572,19 @@ function ServiceRecordsPage() {
         {/* RIGHT COLUMN: TABLE */}
         <div className="sr-card sr-table-card">
           <div className="sr-table-header">
-            <h3 className="sr-section-title">All Service Records</h3>
-            <span className="sr-table-caption">
-              {filteredRecords.length} record(s)
-            </span>
+            <div>
+              <h3 className="sr-section-title">All Service Records</h3>
+              <div className="sr-table-caption">Showing {filteredRecords.length} record(s)</div>
+            </div>
+
+            <div className="sr-table-controls">
+              <div className="sr-search" role="search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="11" cy="11" r="6" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <input placeholder="Search invoice, customer, technician" value={query} onChange={(e)=>setQuery(e.target.value)} />
+              </div>
+
+              <button type="button" className="btn-secondary" onClick={handleExportCsv}>Export CSV</button>
+            </div>
           </div>
 
           <div className="table-wrapper">

@@ -54,11 +54,7 @@ function AdminLoginPage({ onLogin }) {
           reports in one place.
         </p>
 
-        <ul className="login-bullets">
-          <li>📊 Daily service reports</li>
-          <li>🔔 Automatic service reminders</li>
-          <li>👥 Customer & machine master data</li>
-        </ul>
+       
       </div>
 
       <div className="login-right">
@@ -102,7 +98,7 @@ function AdminLoginPage({ onLogin }) {
             </div>
 
             <div className="login-row-between">
-              <span className="login-hint">Default: admin / 1234</span>
+            
               <button
                 type="button"
                 className="login-link-btn"
