@@ -72,19 +72,29 @@ This system eliminates manual paperwork, reduces calculation errors, and maintai
 
 ## 🧾 System Structure
 
-### Frontend (React)
-src/
- ├─ pages
- │  ├─ AdminLoginPage.jsx
- │  ├─ DashboardPage.jsx
- │  ├─ CustomersPage.jsx
- │  ├─ MachinesPage.jsx
- │  ├─ ServiceEntryPage.jsx
- │  ├─ ServiceRecordsPage.jsx
- │  ├─ ServiceReportPage.jsx
- │  ├─ ReminderPage.jsx
- │  └─ ForgotPasswordPage.jsx
- ├─ App.js
- ├─ index.js
- └─ styles
+### 🧾 System Structure
+
+#### Frontend (React)
+- src
+  - pages
+    - AdminLoginPage.jsx
+    - DashboardPage.jsx
+    - CustomersPage.jsx
+    - MachinesPage.jsx
+    - ServiceEntryPage.jsx
+    - ServiceRecordsPage.jsx
+    - ServiceReportPage.jsx
+    - ReminderPage.jsx
+    - ForgotPasswordPage.jsx
+  - App.js
+  - index.js
+  - styles
+
+#### Backend (Spring Boot)
+- src/main/java/com.weighlanka.backend
+  - config
+  - controller
+  - dto
+  - model
+  - repository
 
